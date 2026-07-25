@@ -25,7 +25,8 @@ button {
 }
 
 .home-screen,
-.detail-screen {
+.detail-screen,
+.profile-screen {
   background: var(--canvas);
 }
 
@@ -450,6 +451,168 @@ button {
   font-size: 10px;
 }
 
+.profile-content {
+  min-height: 100%;
+  padding: 20px 16px calc(var(--mobile-safe-area-height) + 30px);
+}
+
+.profile-hero {
+  padding: 4px 3px 17px;
+}
+
+.profile-hero h1 {
+  margin: 4px 0 7px;
+  font-size: 29px;
+  letter-spacing: -1px;
+}
+
+.profile-hero p {
+  margin: 0;
+  color: var(--muted);
+  font-size: 11px;
+  line-height: 1.55;
+}
+
+.profile-tabs {
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  gap: 7px;
+  margin-bottom: 14px;
+}
+
+.profile-tabs button {
+  display: flex;
+  min-height: 46px;
+  align-items: center;
+  justify-content: center;
+  gap: 6px;
+  border: 1px solid var(--line);
+  border-radius: 13px;
+  color: #716b65;
+  background: white;
+  font-size: 11px;
+  font-weight: 800;
+}
+
+.profile-tabs button.is-active {
+  border-color: var(--ink);
+  color: white;
+  background: var(--ink);
+}
+
+.profile-tabs b {
+  min-width: 19px;
+  padding: 2px 5px;
+  border-radius: 999px;
+  background: rgba(128, 120, 113, 0.12);
+  font-size: 9px;
+}
+
+.profile-tabs button.is-active b {
+  background: rgba(255, 255, 255, 0.15);
+}
+
+.profile-list {
+  display: grid;
+  gap: 10px;
+}
+
+.profile-card {
+  display: block;
+  width: 100%;
+  padding: 15px;
+  text-align: left;
+  border: 1px solid var(--line);
+  border-radius: 17px;
+  color: var(--ink);
+  background: white;
+  box-shadow: 0 5px 16px rgba(50, 40, 34, 0.04);
+}
+
+.profile-card > strong,
+.profile-card > p,
+.profile-card-meta {
+  display: block;
+}
+
+.profile-status {
+  display: inline-flex;
+  margin-bottom: 9px;
+  padding: 4px 7px;
+  border-radius: 6px;
+  color: #736d67;
+  background: #f1efec;
+  font-size: 9px;
+  font-weight: 800;
+}
+
+.profile-status.status-saved {
+  color: var(--brand-deep);
+  background: var(--brand-soft);
+}
+
+.profile-status.status-trashed {
+  color: white;
+  background: #4b4541;
+}
+
+.profile-card > strong {
+  font-size: 15px;
+}
+
+.profile-card > p {
+  display: -webkit-box;
+  overflow: hidden;
+  margin: 6px 0 11px;
+  color: #716b65;
+  font-size: 11px;
+  line-height: 1.55;
+  -webkit-box-orient: vertical;
+  -webkit-line-clamp: 2;
+}
+
+.profile-card-meta {
+  display: flex;
+  justify-content: space-between;
+  color: #9b958f;
+  font-size: 9px;
+}
+
+.profile-card-meta i {
+  font-style: normal;
+}
+
+.profile-empty {
+  display: flex;
+  min-height: 260px;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  padding: 25px;
+  text-align: center;
+  border: 1px dashed #dcd7d2;
+  border-radius: 19px;
+  color: #928b85;
+  background: rgba(255, 255, 255, 0.55);
+}
+
+.profile-empty svg {
+  width: 27px;
+  height: 27px;
+  margin-bottom: 12px;
+  color: var(--brand);
+}
+
+.profile-empty strong {
+  color: #4b4642;
+  font-size: 14px;
+}
+
+.profile-empty p {
+  margin: 7px 0 0;
+  font-size: 10px;
+}
+
 .detail-toolbar {
   position: relative;
   height: 54px;
@@ -463,6 +626,11 @@ button {
 .detail-toolbar > strong {
   font-size: 14px;
   letter-spacing: -0.1px;
+}
+
+.toolbar-spacer {
+  width: 44px;
+  height: 44px;
 }
 
 .toolbar-toast {
@@ -705,6 +873,32 @@ button {
   animation: none;
 }
 
+.review-card.is-error > strong {
+  display: block;
+  margin-top: 14px;
+  font-size: 13px;
+}
+
+.review-card.is-error > p {
+  margin: 6px 0 12px;
+  color: var(--muted);
+  font-size: 11px;
+}
+
+.review-card.is-error > button {
+  display: inline-flex;
+  min-height: 40px;
+  align-items: center;
+  gap: 6px;
+  padding: 0 12px;
+  border: 0;
+  border-radius: 10px;
+  color: white;
+  background: #282522;
+  font-size: 10px;
+  font-weight: 800;
+}
+
 .loading-avatar,
 .loading-lines i {
   background: linear-gradient(90deg, #f1efec, #faf9f7, #f1efec);
@@ -769,6 +963,13 @@ button {
   border-color: #dfdcd8;
   color: #9e9892;
   background: #e9e6e2;
+}
+
+.summary-error {
+  margin: 8px 4px 0;
+  color: var(--danger);
+  font-size: 10px;
+  text-align: center;
 }
 
 .summary-card {

@@ -5,3 +5,7 @@ playwright-report/
 qa-home-v1.png
 qa-detail-v1.png
 qa-pixel-detail.png
+.dev.vars
+.env
+.env.*
+!.env.example
