@@ -14,9 +14,29 @@
 - 打开六个预制热门 Idea，快速稳定地演示完整详情页。
 - 在 iPhone 与 Pixel 10 设备框中预览；界面优先适配手机。
 
-## 当前限制
+## DeepSeek 与数据存储
 
-这是黑客松前端原型。三位评论员和最终总结目前使用定时器与真实感 mock 文案模拟，尚未连接 LLM 服务端；个人中心也只保留入口提示。代码中已经标注未来替换位置，下一步应将三个定时任务分别换成安全的 `/api/review` 请求，再将总结换成 `/api/summary`。API Key 不应放进前端。
+- 线上版本通过 Cloudflare Pages Functions 的 `/api/review` 和 `/api/summary` 调用 DeepSeek；API Key 只存在于 Cloudflare 的加密环境变量中，不会进入浏览器或 GitHub。
+- 三位评论员并发、独立返回；失败的卡片可手动重试，不会自动产生额外调用。最终总结只在用户点击按钮后请求。
+- 本地 `npm run dev` 默认使用快速 mock，方便零成本调试界面；`npm run build` 生成的线上版本会请求真实 API。
+- 匿名用户的 Idea、评论、总结和收藏/垃圾桶状态保存在浏览器 `localStorage` 中。它比约 4 KB 上限的 Cookie 更适合保存这些结构化内容，但不会跨设备同步。
+
+## Cloudflare Pages 部署
+
+Cloudflare Pages 连接本仓库后使用以下设置：
+
+```text
+Build command: npm run build
+Build output directory: dist/client
+```
+
+然后进入 `Workers & Pages → IdeaDianping → Settings → Variables and Secrets`，新增加密 Secret：
+
+```text
+DEEPSEEK_API_KEY=<你的 DeepSeek API Key>
+```
+
+如果 Preview 和 Production 都需要真实 AI，请分别为两个环境配置。保存后重新部署，Cloudflare 会自动发现仓库根目录下的 `functions/`。不要把真实 Key 写进 `.env`、`.dev.vars`、前端代码或 GitHub；`.env.example` 只提供变量名占位。
 
 ## 本地运行
 
@@ -33,6 +53,7 @@ npm run dev -- --host 0.0.0.0 --port 4173 --strictPort
 
 ```bash
 npm run check:runtime
+npm run test:api
 npm run build
 npm run test:sites
 ```
@@ -42,6 +63,9 @@ npm run test:sites
 ```text
 src/Prototype.tsx              产品数据、页面、评论流与本地状态
 src/prototype.css              移动端视觉与交互状态
+functions/api/review.js        三位 AI 评论员的 Cloudflare 服务端接口
+functions/api/summary.js       最终审判的 Cloudflare 服务端接口
+tests/api-functions.test.mjs   API 请求格式、校验与密钥隔离测试
 public/assets/reviewers/       三位固定评论员头像
 IdeaDianping-MVP-Spec.md       产品、交互与技术规格
 design-qa.md                   视觉与主流程验收记录

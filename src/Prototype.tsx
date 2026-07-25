@@ -7,6 +7,7 @@ import {
   ChevronRightIcon,
   LightningBoltIcon,
   MagicWandIcon,
+  PersonIcon,
   Share2Icon,
   StarFilledIcon,
   StarIcon,
@@ -52,7 +53,15 @@ type Idea = {
   buzz: string;
   reviews?: Review[];
   summary?: Summary;
+  status?: IdeaStatus;
+  createdAt?: string;
 };
+
+type StoredIdea = Idea & { status: IdeaStatus; createdAt: string };
+
+const IDEA_STORAGE_KEY = "ideadianping:ideas:v1";
+const STORAGE_EVENT = "ideadianping:ideas-changed";
+const personaIds: PersonaId[] = ["vc", "engineer", "genz"];
 
 const personaMeta: Record<PersonaId, { name: string; subtitle: string; avatar: string; tone: string }> = {
   vc: {
@@ -153,6 +162,69 @@ const sampleIdeas: Idea[] = [
   },
 ];
 
+const sampleIdeaIds = new Set(sampleIdeas.map((idea) => idea.id));
+
+function readIdeaRecords(): StoredIdea[] {
+  try {
+    const value = JSON.parse(window.localStorage.getItem(IDEA_STORAGE_KEY) || "[]");
+    return Array.isArray(value) ? value : [];
+  } catch {
+    return [];
+  }
+}
+
+function upsertIdeaRecord(idea: Idea, patch: Partial<StoredIdea> = {}) {
+  const records = readIdeaRecords();
+  const existing = records.find((record) => record.id === idea.id);
+  const next: StoredIdea = {
+    ...idea,
+    ...existing,
+    ...patch,
+    status: patch.status || existing?.status || idea.status || "active",
+    createdAt: patch.createdAt || existing?.createdAt || idea.createdAt || new Date().toISOString(),
+  };
+  window.localStorage.setItem(
+    IDEA_STORAGE_KEY,
+    JSON.stringify([next, ...records.filter((record) => record.id !== idea.id)]),
+  );
+  window.dispatchEvent(new Event(STORAGE_EVENT));
+  return next;
+}
+
+function useIdeaRecords() {
+  const [records, setRecords] = useState<StoredIdea[]>(() => readIdeaRecords());
+
+  useEffect(() => {
+    const refresh = () => setRecords(readIdeaRecords());
+    window.addEventListener("storage", refresh);
+    window.addEventListener(STORAGE_EVENT, refresh);
+    return () => {
+      window.removeEventListener("storage", refresh);
+      window.removeEventListener(STORAGE_EVENT, refresh);
+    };
+  }, []);
+
+  return records;
+}
+
+async function postJson<T>(url: string, body: unknown): Promise<T> {
+  const controller = new AbortController();
+  const timeout = window.setTimeout(() => controller.abort(), 20_000);
+  try {
+    const response = await fetch(url, {
+      method: "POST",
+      headers: { "content-type": "application/json" },
+      body: JSON.stringify(body),
+      signal: controller.signal,
+    });
+    const payload = await response.json().catch(() => ({}));
+    if (!response.ok) throw new Error(payload.error || "服务暂时不可用");
+    return payload as T;
+  } finally {
+    window.clearTimeout(timeout);
+  }
+}
+
 function makeDisplayName(text: string) {
   const firstSentence = text.split(/[。！？!?\n]/)[0]?.trim() || text.trim();
   return firstSentence.length > 18 ? `${firstSentence.slice(0, 18)}…` : firstSentence;
@@ -234,12 +306,15 @@ function HomeScreen({ flow }: { flow: FlowControls }) {
 
     keyboard.hide();
     const idea: Idea = {
-      id: `idea-${Date.now()}`,
+      id: `idea-${crypto.randomUUID?.() || Date.now()}`,
       name: makeDisplayName(ideaText),
       description: ideaText.trim(),
       tags: inferTags(ideaText),
       buzz: "刚开业，三位探店博主正在赶来。",
+      status: "active",
+      createdAt: new Date().toISOString(),
     };
+    upsertIdeaRecord(idea);
     setIdeaText("");
     setError("");
     openIdea(idea, true);
@@ -256,8 +331,8 @@ function HomeScreen({ flow }: { flow: FlowControls }) {
               <small>灵感粉碎机</small>
             </span>
           </div>
-          <button className="icon-button soft" type="button" aria-label="我的收藏" onClick={() => setError("个人主页装修中，收藏仍会保存在本机") }>
-            <BookmarkIcon />
+          <button className="icon-button soft" type="button" aria-label="个人主页" onClick={() => flow.push(createProfileScreen())}>
+            <PersonIcon />
           </button>
         </header>
 
@@ -333,6 +408,102 @@ function HomeScreen({ flow }: { flow: FlowControls }) {
   );
 }
 
+type ProfileFilter = "all" | "saved" | "trashed";
+
+function ProfileHeader({ flow }: { flow: FlowControls }) {
+  return (
+    <div className="detail-toolbar">
+      <button className="icon-button" type="button" aria-label="返回" onClick={flow.pop}><ArrowLeftIcon /></button>
+      <strong>我的 Idea</strong>
+      <span className="toolbar-spacer" />
+    </div>
+  );
+}
+
+function ProfileScreen({ flow }: { flow: FlowControls }) {
+  const records = useIdeaRecords();
+  const [filter, setFilter] = useState<ProfileFilter>("all");
+  const visible = records.filter((record) => filter === "all" || record.status === filter);
+  const counts = {
+    all: records.length,
+    saved: records.filter((record) => record.status === "saved").length,
+    trashed: records.filter((record) => record.status === "trashed").length,
+  };
+
+  const openRecord = (idea: StoredIdea) => {
+    const needsReviews = !sampleIdeaIds.has(idea.id) && (idea.reviews?.length || 0) < 3;
+    flow.push(createDetailScreen(idea, needsReviews));
+  };
+
+  return (
+    <MobileScroll className="app-screen profile-screen">
+      <main className="profile-content" data-testid="profile-screen">
+        <section className="profile-hero">
+          <span className="section-eyebrow">本机匿名档案</span>
+          <h1>灵感仓库</h1>
+          <p>没有登录，也不会上传这份列表。换浏览器或清除网站数据后记录会消失。</p>
+        </section>
+
+        <nav className="profile-tabs" aria-label="Idea 分类">
+          {([
+            ["all", "全部"],
+            ["saved", "收藏夹"],
+            ["trashed", "垃圾桶"],
+          ] as const).map(([value, label]) => (
+            <button
+              type="button"
+              key={value}
+              className={filter === value ? "is-active" : ""}
+              aria-pressed={filter === value}
+              onClick={() => setFilter(value)}
+            >
+              <span>{label}</span><b>{counts[value]}</b>
+            </button>
+          ))}
+        </nav>
+
+        {visible.length ? (
+          <div className="profile-list">
+            {visible.map((idea) => {
+              const average = idea.reviews?.length
+                ? idea.reviews.reduce((sum, review) => sum + review.stars, 0) / idea.reviews.length
+                : 0;
+              return (
+                <button className="profile-card" type="button" key={idea.id} onClick={() => openRecord(idea)}>
+                  <span className={`profile-status status-${idea.status}`}>
+                    {idea.status === "saved" ? "已收藏" : idea.status === "trashed" ? "已丢弃" : "待决定"}
+                  </span>
+                  <strong>{idea.name}</strong>
+                  <p>{idea.description}</p>
+                  <span className="profile-card-meta">
+                    <i>{average ? `${average.toFixed(1)} 星 · ${idea.reviews?.length}/3 已到店` : "等待探店"}</i>
+                    <time>{new Date(idea.createdAt).toLocaleDateString("zh-CN", { month: "numeric", day: "numeric" })}</time>
+                  </span>
+                </button>
+              );
+            })}
+          </div>
+        ) : (
+          <div className="profile-empty">
+            <MagicWandIcon />
+            <strong>{filter === "all" ? "还没有 Idea 入库" : filter === "saved" ? "收藏夹还是空的" : "垃圾桶干干净净"}</strong>
+            <p>回首页提交一个点子，或者给现有点子做个决定。</p>
+          </div>
+        )}
+      </main>
+    </MobileScroll>
+  );
+}
+
+function createProfileScreen(): FlowScreen {
+  return {
+    id: "profile",
+    headerHeight: 54,
+    header: (flow) => <ProfileHeader flow={flow} />,
+    render: (flow) => <ProfileScreen flow={flow} />,
+  };
+}
+
 function DetailHeader({ flow, idea }: { flow: FlowControls; idea: Idea }) {
   const [shared, setShared] = useState(false);
 
@@ -360,12 +531,12 @@ function DetailHeader({ flow, idea }: { flow: FlowControls; idea: Idea }) {
 
 function ActionFooter({ idea }: { idea: Idea }) {
   const [status, setStatus] = useState<IdeaStatus>(() => {
-    return (window.localStorage.getItem(`ideadianping:${idea.id}`) as IdeaStatus) || "active";
+    return readIdeaRecords().find((record) => record.id === idea.id)?.status || idea.status || "active";
   });
   const [sheetOpen, setSheetOpen] = useState(false);
 
   const updateStatus = (next: IdeaStatus) => {
-    window.localStorage.setItem(`ideadianping:${idea.id}`, next);
+    upsertIdeaRecord(idea, { status: next });
     setStatus(next);
     setSheetOpen(true);
   };
@@ -400,10 +571,36 @@ function ActionFooter({ idea }: { idea: Idea }) {
   );
 }
 
-function ReviewCard({ review, loading }: { review?: Review; loading?: boolean }) {
-  const persona = review ? personaMeta[review.reviewerId] : undefined;
+function ReviewCard({
+  reviewerId,
+  review,
+  loading,
+  error,
+  onRetry,
+}: {
+  reviewerId: PersonaId;
+  review?: Review;
+  loading?: boolean;
+  error?: string;
+  onRetry: () => void;
+}) {
+  const persona = personaMeta[review?.reviewerId || reviewerId];
 
-  if (loading || !review || !persona) {
+  if (error && !review) {
+    return (
+      <article className={`review-card is-error tone-${persona.tone}`} aria-label={`${persona.name}评论失败`}>
+        <header className="reviewer-row">
+          <img src={persona.avatar} alt={`${persona.name}头像`} />
+          <div><strong>{persona.name}</strong><small>{persona.subtitle}</small></div>
+        </header>
+        <strong>这位博主堵在路上</strong>
+        <p>{error}</p>
+        <button type="button" onClick={onRetry}><UpdateIcon /> 单独重试</button>
+      </article>
+    );
+  }
+
+  if (loading || !review) {
     return (
       <article className="review-card is-loading" aria-label="评论生成中">
         <div className="loading-avatar" />
@@ -460,35 +657,75 @@ function SummaryCard({ summary }: { summary: Summary }) {
 }
 
 function IdeaDetail({ idea, live }: { idea: Idea; live: boolean }) {
-  const generatedReviews = useMemo(() => idea.reviews || buildDynamicReviews(idea), [idea]);
-  const [reviews, setReviews] = useState<Review[]>(live ? [] : generatedReviews);
-  const [summary, setSummary] = useState<Summary | undefined>(live ? undefined : idea.summary || buildDynamicSummary(idea));
+  const isSample = sampleIdeaIds.has(idea.id);
+  const fallbackReviews = useMemo(() => buildDynamicReviews(idea), [idea]);
+  const [reviews, setReviews] = useState<Review[]>(() => idea.reviews || (isSample ? fallbackReviews : []));
+  const [summary, setSummary] = useState<Summary | undefined>(() => idea.summary || (isSample ? buildDynamicSummary(idea) : undefined));
   const [summarizing, setSummarizing] = useState(false);
-  const timers = useRef<number[]>([]);
+  const [summaryError, setSummaryError] = useState("");
+  const [reviewErrors, setReviewErrors] = useState<Partial<Record<PersonaId, string>>>({});
+  const requestsInFlight = useRef(new Set<PersonaId>());
+
+  const requestReview = async (reviewerId: PersonaId) => {
+    if (requestsInFlight.current.has(reviewerId) || reviews.some((review) => review.reviewerId === reviewerId)) return;
+    requestsInFlight.current.add(reviewerId);
+    setReviewErrors((current) => ({ ...current, [reviewerId]: undefined }));
+
+    try {
+      let review: Review;
+      if (import.meta.env.DEV) {
+        // Vite 本地开发没有 Pages Functions；用低延迟 mock 验证交互且不消耗 API 额度。
+        await new Promise((resolve) => window.setTimeout(resolve, 420 + personaIds.indexOf(reviewerId) * 260));
+        review = fallbackReviews.find((item) => item.reviewerId === reviewerId)!;
+      } else {
+        review = await postJson<Review>("/api/review", { ideaId: idea.id, ideaText: idea.description, persona: reviewerId });
+      }
+
+      setReviews((current) => {
+        const next = [...current.filter((item) => item.reviewerId !== reviewerId), review];
+        upsertIdeaRecord(idea, { reviews: next });
+        return next;
+      });
+    } catch (error) {
+      setReviewErrors((current) => ({
+        ...current,
+        [reviewerId]: error instanceof Error ? error.message : "评论生成失败",
+      }));
+    } finally {
+      requestsInFlight.current.delete(reviewerId);
+    }
+  };
 
   useEffect(() => {
     if (!live) return;
-
-    // 原型用分段定时器模拟三个独立 LLM 请求；后续可逐个替换为 /api/review。
-    [760, 1380, 2180].forEach((delay, index) => {
-      const timer = window.setTimeout(() => {
-        setReviews((current) => [...current, generatedReviews[index]]);
-      }, delay);
-      timers.current.push(timer);
+    personaIds.forEach((reviewerId) => {
+      if (!reviews.some((review) => review.reviewerId === reviewerId)) void requestReview(reviewerId);
     });
-
-    return () => timers.current.forEach(window.clearTimeout);
-  }, [generatedReviews, live]);
+    // 每个角色首次只请求一次；失败后由对应卡片手动重试，避免额外费用。
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [idea.id, live]);
 
   const average = reviews.length ? reviews.reduce((sum, review) => sum + review.stars, 0) / reviews.length : 0;
 
-  const requestSummary = () => {
+  const requestSummary = async () => {
     if (reviews.length < 2 || summarizing) return;
     setSummarizing(true);
-    window.setTimeout(() => {
-      setSummary(idea.summary || buildDynamicSummary(idea));
+    setSummaryError("");
+    try {
+      let nextSummary: Summary;
+      if (isSample || import.meta.env.DEV) {
+        await new Promise((resolve) => window.setTimeout(resolve, 520));
+        nextSummary = idea.summary || buildDynamicSummary(idea);
+      } else {
+        nextSummary = await postJson<Summary>("/api/summary", { ideaId: idea.id, ideaText: idea.description, reviews });
+      }
+      setSummary(nextSummary);
+      upsertIdeaRecord(idea, { reviews, summary: nextSummary });
+    } catch (error) {
+      setSummaryError(error instanceof Error ? error.message : "总结失败，请重试");
+    } finally {
       setSummarizing(false);
-    }, 980);
+    }
   };
 
   return (
@@ -519,9 +756,18 @@ function IdeaDetail({ idea, live }: { idea: Idea; live: boolean }) {
           </div>
 
           <div className="review-list">
-            {["vc", "engineer", "genz"].map((reviewerId) => {
+            {personaIds.map((reviewerId) => {
               const review = reviews.find((item) => item.reviewerId === reviewerId);
-              return <ReviewCard key={reviewerId} review={review} loading={!review} />;
+              return (
+                <ReviewCard
+                  key={reviewerId}
+                  reviewerId={reviewerId}
+                  review={review}
+                  loading={!review && !reviewErrors[reviewerId]}
+                  error={reviewErrors[reviewerId]}
+                  onRetry={() => void requestReview(reviewerId)}
+                />
+              );
             })}
           </div>
 
@@ -535,6 +781,7 @@ function IdeaDetail({ idea, live }: { idea: Idea; live: boolean }) {
               {summarizing ? <><UpdateIcon className="spin" /> 店长正在核对差评…</> : <><MagicWandIcon /> @Idea 总结一下</>}
             </button>
           ) : <SummaryCard summary={summary} />}
+          {summaryError && !summary ? <p className="summary-error">{summaryError}，点击按钮重试。</p> : null}
         </section>
       </main>
     </MobileScroll>
