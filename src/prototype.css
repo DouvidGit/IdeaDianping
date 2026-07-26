@@ -1194,8 +1194,11 @@ button {
   }
 }
 
-/* 去掉手机外壳 */
-div.phone-device {
+/* 暴力移除所有与手机模拟相关的边框和限制 */
+[class*="phone"],
+[class*="device"],
+[class*="mockup"],
+[class*="frame"]:not(.page-frame) {
   border: none !important;
   box-shadow: none !important;
   max-width: 100% !important;
@@ -1206,21 +1209,17 @@ div.phone-device {
   background: transparent !important;
   margin: 0 auto !important;
   transform: none !important;
+  overflow: visible !important;
 }
 
-/* 如果内部有固定宽度的容器，也放开 */
-div.phone-device > * {
+/* 同时让内部所有元素铺满 */
+[class*="phone"] *,
+[class*="device"] *,
+[class*="mockup"] * {
   max-width: 100% !important;
 }
 
-/* 隐藏键盘 */
-.keyboard,
+/* 隐藏键盘（如果有） */
 [class*="keyboard"] {
-  display: none !important;
-}
-
-/* 隐藏状态栏 */
-.status-bar,
-[class*="status"] {
   display: none !important;
 }
