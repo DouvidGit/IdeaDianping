@@ -72,9 +72,9 @@ const heroTitles = [
 ] as const;
 
 const personaShortIntro: Record<PersonaId, string> = {
-  vc: "势利风投",
+  vc: "双面评论家",
   engineer: "15 年老程序员",
-  genz: "00 后互联网嘴替",
+  genz: "10 后互联网嘴替",
 };
 
 const roastSteps = ["输入点子", "三人开麦", "接受审判"] as const;
@@ -98,7 +98,7 @@ const personaMeta: Record<
 > = {
   vc: {
     name: "Victor",
-    subtitle: "挑剔风投 · 专治伪需求",
+    subtitle: "双面评论家 · 商业问钱，日常问心",
     avatar: "/assets/reviewers/vc.png",
     tone: "vc",
   },
@@ -110,7 +110,7 @@ const personaMeta: Record<
   },
   genz: {
     name: "Leo",
-    subtitle: "00 后用户 · 3 秒不爽就卸载",
+    subtitle: "10 后用户 · 3 秒不爽就卸载",
     avatar: "/assets/reviewers/genz.png",
     tone: "genz",
   },
