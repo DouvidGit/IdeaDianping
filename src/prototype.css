@@ -1204,30 +1204,38 @@ button {
   }
 }
 
-/* 彻底消灭手机壳 */
+/* 1. 消灭手机壳，全屏撑满 */
 div.phone-device {
-  all: initial !important;                   /* 重置所有样式 */
-  display: block !important;
-  width: 100% !important;
+  width: 100vw !important;
   height: 100vh !important;
   max-width: 100% !important;
-  border: none !important;
-  box-shadow: none !important;
+  max-height: 100% !important;
+  border: 0 !important;
   border-radius: 0 !important;
+  box-shadow: none !important;
   padding: 0 !important;
   margin: 0 !important;
   background: transparent !important;
   transform: none !important;
-  overflow: visible !important;
+  position: relative !important;
+  overflow-y: auto !important; /* 允许长内容正常滚动 */
+  overflow-x: hidden !important;
 }
 
+/* 2. 让内部子元素也跟着正常铺满 */
 div.phone-device > * {
   max-width: 100% !important;
   box-sizing: border-box !important;
 }
 
-/* 隐藏键盘 */
-.keyboard,
-[class*="keyboard"] {
+/* 3. 隐藏顶部时间、电量和网络状态栏 */
+div.phone-device .status-bar,
+div.phone-device [class*="status-bar"],
+div.phone-device [class*="ios-status"] {
   display: none !important;
+}
+
+/* 4. 将原先为状态栏预留的安全边距归零 */
+:root {
+  --mobile-safe-area-height: 0px !important;
 }
