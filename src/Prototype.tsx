@@ -62,7 +62,7 @@ type StoredIdea = Idea & {
 
 const IDEA_STORAGE_KEY = "ideadianping:ideas:v1";
 const STORAGE_EVENT = "ideadianping:ideas-changed";
-const personaIds: PersonaId[] = ["vc", "engineer", "genz"];
+const personaIds: PersonaId[] = ["genz", "vc", "engineer"];
 
 const heroTitles = [
   "Any IDEAs?",
@@ -72,10 +72,20 @@ const heroTitles = [
 ] as const;
 
 const personaShortIntro: Record<PersonaId, string> = {
-  vc: "只问值不值钱",
-  engineer: "专拆技术幻想",
-  genz: "三秒决定去留",
+  vc: "势利风投",
+  engineer: "15 年老程序员",
+  genz: "00 后互联网嘴替",
 };
+
+const roastSteps = ["输入点子", "三人开麦", "接受审判"] as const;
+
+function getRoastStamp(average: number) {
+  if (average >= 4.5) return "夯爆了";
+  if (average >= 3.5) return "顶级";
+  if (average >= 2.5) return "人上人";
+  if (average >= 1.5) return "NPC";
+  return "拉完了";
+}
 
 const personaMeta: Record<
   PersonaId,
@@ -253,6 +263,18 @@ function upsertIdeaRecord(
   window.dispatchEvent(new Event(STORAGE_EVENT));
 
   return next;
+}
+
+function deleteIdeaRecord(ideaId: string) {
+  const nextRecords = readIdeaRecords().filter(
+    (record) => record.id !== ideaId,
+  );
+
+  window.localStorage.setItem(
+    IDEA_STORAGE_KEY,
+    JSON.stringify(nextRecords),
+  );
+  window.dispatchEvent(new Event(STORAGE_EVENT));
 }
 
 function useIdeaRecords() {
@@ -775,6 +797,18 @@ function HomeScreen({ flow }: { flow: FlowControls }) {
             <i className="typewriter-cursor" aria-hidden="true" />
           </h1>
 
+          <ol className="roast-steps" aria-label="使用步骤">
+            {roastSteps.map((step, index) => (
+              <li key={step}>
+                <i>{index + 1}</i>
+                <span>{step}</span>
+                {index < roastSteps.length - 1 ? (
+                  <ChevronRightIcon aria-hidden="true" />
+                ) : null}
+              </li>
+            ))}
+          </ol>
+
           <div
             className={`idea-composer ${
               error ? "has-error" : ""
@@ -913,9 +947,7 @@ function HomeScreen({ flow }: { flow: FlowControls }) {
                         compact
                       />
                       <b>{rating.toFixed(1)}</b>
-                      <small>
-                        {12 + index * 7} 条评价
-                      </small>
+                      <small>3 位 AI 锐评</small>
                     </span>
 
                     <span className="featured-roast">
@@ -960,6 +992,8 @@ function ProfileScreen({ flow }: { flow: FlowControls }) {
   const records = useIdeaRecords();
   const [filter, setFilter] =
     useState<ProfileFilter>("all");
+  const [pendingDelete, setPendingDelete] =
+    useState<StoredIdea | null>(null);
 
   const visible = records.filter(
     (record) =>
@@ -982,6 +1016,12 @@ function ProfileScreen({ flow }: { flow: FlowControls }) {
       (idea.reviews?.length || 0) < 3;
 
     flow.push(createDetailScreen(idea, needsReviews));
+  };
+
+  const confirmDelete = () => {
+    if (!pendingDelete) return;
+    deleteIdeaRecord(pendingDelete.id);
+    setPendingDelete(null);
   };
 
   return (
@@ -1038,42 +1078,57 @@ function ProfileScreen({ flow }: { flow: FlowControls }) {
                 : 0;
 
               return (
-                <button
-                  className="profile-card"
-                  type="button"
+                <article
+                  className="profile-card-shell"
                   key={idea.id}
-                  onClick={() => openRecord(idea)}
                 >
-                  <span
-                    className={`profile-status status-${idea.status}`}
+                  <button
+                    className="profile-card"
+                    type="button"
+                    onClick={() => openRecord(idea)}
                   >
-                    {idea.status === "saved"
-                      ? "已收藏"
-                      : idea.status === "trashed"
-                        ? "已丢弃"
-                        : "待决定"}
-                  </span>
+                    <span
+                      className={`profile-status status-${idea.status}`}
+                    >
+                      {idea.status === "saved"
+                        ? "已收藏"
+                        : idea.status === "trashed"
+                          ? "已丢弃"
+                          : "待决定"}
+                    </span>
 
-                  <strong>{idea.name}</strong>
-                  <p>{idea.description}</p>
+                    <strong>{idea.name}</strong>
+                    <p>{idea.description}</p>
 
-                  <span className="profile-card-meta">
-                    <i>
-                      {average
-                        ? `${average.toFixed(1)} 星 · ${idea.reviews?.length}/3 已完成`
-                        : "等待审判"}
-                    </i>
+                    <span className="profile-card-meta">
+                      <i>
+                        {average
+                          ? `${average.toFixed(1)} 星 · ${idea.reviews?.length}/3 已完成`
+                          : "等待审判"}
+                      </i>
 
-                    <time>
-                      {new Date(
-                        idea.createdAt,
-                      ).toLocaleDateString("zh-CN", {
-                        month: "numeric",
-                        day: "numeric",
-                      })}
-                    </time>
-                  </span>
-                </button>
+                      <time>
+                        {new Date(
+                          idea.createdAt,
+                        ).toLocaleDateString("zh-CN", {
+                          month: "numeric",
+                          day: "numeric",
+                        })}
+                      </time>
+                    </span>
+                  </button>
+
+                  {filter === "trashed" ? (
+                    <button
+                      className="permanent-delete-button"
+                      type="button"
+                      onClick={() => setPendingDelete(idea)}
+                      aria-label={`永久删除 ${idea.name}`}
+                    >
+                      <TrashIcon /> 永久删除
+                    </button>
+                  ) : null}
+                </article>
               );
             })}
           </div>
@@ -1094,6 +1149,38 @@ function ProfileScreen({ flow }: { flow: FlowControls }) {
             </p>
           </div>
         )}
+
+        <BottomSheet
+          open={Boolean(pendingDelete)}
+          onOpenChange={(open) => {
+            if (!open) setPendingDelete(null);
+          }}
+          snap={0.36}
+          title="永久删除这个 Idea？"
+          description="删除后无法恢复，也不会再出现在本机档案中。"
+        >
+          <div className="delete-confirmation">
+            <span className="delete-confirmation-icon">
+              <TrashIcon />
+            </span>
+            <strong>{pendingDelete?.name}</strong>
+            <p>这次不是丢进垃圾桶，而是彻底删除。</p>
+            <div>
+              <button
+                type="button"
+                onClick={() => setPendingDelete(null)}
+              >
+                取消
+              </button>
+              <button
+                type="button"
+                onClick={confirmDelete}
+              >
+                确认永久删除
+              </button>
+            </div>
+          </div>
+        </BottomSheet>
       </main>
     </MobileScroll>
   );
@@ -1391,14 +1478,32 @@ function ReviewCard({
 
 function SummaryCard({
   summary,
+  average,
+  reviewsComplete,
 }: {
   summary: Summary;
+  average: number;
+  reviewsComplete: boolean;
 }) {
+  const roastStamp = reviewsComplete
+    ? getRoastStamp(average)
+    : null;
+
   return (
     <section
       className={`summary-card verdict-${summary.verdict.toLowerCase()}`}
       data-testid="summary-card"
     >
+      {roastStamp ? (
+        <strong
+          className="roast-stamp-hero"
+          data-testid="roast-stamp"
+          data-average={average.toFixed(1)}
+        >
+          {roastStamp}
+        </strong>
+      ) : null}
+
       <div className="summary-topline">
         <span>
           <MagicWandIcon /> 最终审判
@@ -1418,7 +1523,7 @@ function SummaryCard({
       </div>
 
       <div className="test-brief">
-        <span>48 小时真人验证任务</span>
+        <span>下一步行动</span>
         <p>{summary.test48h}</p>
       </div>
     </section>
@@ -1718,7 +1823,13 @@ function IdeaDetail({
             </button>
           ) : (
             <>
-              <SummaryCard summary={summary} />
+              <SummaryCard
+                summary={summary}
+                average={average}
+                reviewsComplete={
+                  reviews.length === personaIds.length
+                }
+              />
               <ActionFooter idea={idea} />
             </>
           )}
