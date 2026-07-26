@@ -747,7 +747,7 @@ function HomeScreen({ flow }: { flow: FlowControls }) {
 
             <span>
               <strong>IdeaDianping</strong>
-              <small>创业点子测试</small>
+             
             </span>
           </div>
 
