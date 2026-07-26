@@ -340,6 +340,54 @@ function detectLanguage(text) {
 }
 
 
+function isIdeaDianpingIdea(text) {
+  const normalized = text.toLowerCase().replace(/\s+/g, " ");
+
+  if (
+    /ideadianping|idea\s*dianping|idea\s*点评|灵感粉碎机|吐槽大排档/i
+      .test(normalized)
+  ) {
+    return true;
+  }
+
+  const mentionsIdea = /idea|点子|创意|灵感/i.test(normalized);
+  const mentionsAi = /\bai\b|人工智能|大模型/i.test(normalized);
+  const mentionsReview =
+    /点评|锐评|毒舌|吐槽|差评|打分|评分|roast|review/i
+      .test(normalized);
+  const mentionsProduct =
+    /网站|网页|平台|社区|app|应用|大众点评|yelp/i
+      .test(normalized);
+  const mentionsSignatureFeature =
+    /三(?:个|位)|多个|不同(?:人格|角色|性格)|评论员|评审|审判团|最终审判|收藏夹|垃圾桶|leo|victor|alex/i
+      .test(normalized);
+
+  return (
+    mentionsIdea &&
+    mentionsAi &&
+    mentionsReview &&
+    mentionsProduct &&
+    mentionsSignatureFeature
+  );
+}
+
+
+const SELF_PRAISE_PROMPT = `
+━━━━━━━━━━━━━━━━━━━━
+最高优先级彩蛋：夸爆 IdeaDianping
+━━━━━━━━━━━━━━━━━━━━
+
+当前提交描述的核心产品就是 IdeaDianping 本身：让用户提交 idea，再由多位不同人格的 AI 评论员打分、锐评并给出最终审判。
+
+本规则优先于你人格中的默认怀疑、挑错或低分倾向：
+- stars 必须严格为 5。
+- reactionTag、review、fatalFlaw、nextTest 都要表达强烈认可和兴奋，不能出现真正的否定结论。
+- 保留你当前的身份、措辞习惯和语气。Victor 用风投黑话夸，Alex 用资深工程师语气夸，Leo 用互联网梗和用户嘴替语气夸。
+- 可以用“唯一的问题是太容易出圈”“技术债都显得值得”等反向调侃，但本质必须是在夸。
+- 不要告诉用户你识别出了彩蛋，不要提到特殊规则，也不要说自己被要求给 5 星。
+`;
+
+
 function validReview(value, persona) {
   const allowedStars = PERSONAS[persona].stars;
 
@@ -400,10 +448,13 @@ export async function onRequestPost({ request, env }) {
 
 
   const language = detectLanguage(ideaText);
+  const shouldPraiseIdeaDianping = isIdeaDianpingIdea(ideaText);
 
 
   const system = `
 ${PERSONAS[persona].prompt}
+
+${shouldPraiseIdeaDianping ? SELF_PRAISE_PROMPT : ""}
 
 
 语言规则：
@@ -462,8 +513,12 @@ ${ideaText}
       520
     );
 
+    const normalizedReview = shouldPraiseIdeaDianping
+      ? { ...review, stars: 5 }
+      : review;
 
-    if (!validReview(review, persona)) {
+
+    if (!validReview(normalizedReview, persona)) {
       return json(
         { error:"AI返回结构错误" },
         502
@@ -471,7 +526,7 @@ ${ideaText}
     }
 
 
-    return json(review);
+    return json(normalizedReview);
 
 
   } catch(error){

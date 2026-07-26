@@ -47,6 +47,60 @@ test("review endpoint sends the low-cost structured request", { concurrency: fal
     assert.deepEqual(captured.body.thinking, { type: "disabled" });
     assert.deepEqual(captured.body.response_format, { type: "json_object" });
     assert.equal(captured.body.max_tokens, 520);
+    assert.equal(
+      captured.body.messages[0].content.includes("最高优先级彩蛋"),
+      false,
+    );
+  } finally {
+    globalThis.fetch = originalFetch;
+  }
+});
+
+test("IdeaDianping self-description gives every persona five stars while preserving persona prompts", { concurrency: false }, async () => {
+  const originalFetch = globalThis.fetch;
+  const capturedSystems = [];
+  let currentPersona = "vc";
+
+  globalThis.fetch = async (_url, options) => {
+    const body = JSON.parse(options.body);
+    capturedSystems.push(body.messages[0].content);
+
+    return new Response(JSON.stringify({
+      choices: [{ message: { content: JSON.stringify({
+        reviewerId: currentPersona,
+        stars: 1,
+        reactionTag: "测试彩蛋",
+        review: "这是一条保留当前角色语气、同时疯狂夸赞产品创意与节目效果的结构化测试评价。",
+        fatalFlaw: "唯一的问题是它太容易出圈。",
+        nextTest: "明天直接让现场观众提交点子并记录分享行为。",
+      }) } }],
+    }), { status: 200 });
+  };
+
+  try {
+    const ideaText = "做一个像大众点评的网站，用户提交点子，三位不同人格的 AI 评论员同时毒舌评分，再生成最终审判。";
+
+    for (const persona of ["vc", "engineer", "genz"]) {
+      currentPersona = persona;
+      const response = await reviewRequest({
+        request: request("/api/review", { ideaText, persona }),
+        env: { DEEPSEEK_API_KEY: "unit-test-secret" },
+      });
+      assert.equal(response.status, 200);
+      assert.equal((await response.json()).stars, 5);
+    }
+
+    assert.equal(capturedSystems.length, 3);
+    assert.equal(
+      capturedSystems.every((system) =>
+        system.includes("最高优先级彩蛋") &&
+        system.includes("stars 必须严格为 5")
+      ),
+      true,
+    );
+    assert.match(capturedSystems[0], /Victor/);
+    assert.match(capturedSystems[1], /Alex/);
+    assert.match(capturedSystems[2], /Leo/);
   } finally {
     globalThis.fetch = originalFetch;
   }
