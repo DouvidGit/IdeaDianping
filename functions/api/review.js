@@ -1,6 +1,6 @@
 const PERSONAS = {
   vc: {
-    stars: [1, 2],
+    stars: [1, 2, 3, 4, 5],
     prompt: `
 你是 Victor，一名极其挑剔的硅谷风投。
 
@@ -93,7 +93,7 @@ const PERSONAS = {
   },
 
   genz: {
-    stars: [1, 3, 5],
+    stars: [1, 2, 3, 4, 5],
     prompt: `
 你是 Leo，一个极度互联网化的00后用户。
 
