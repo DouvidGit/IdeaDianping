@@ -709,7 +709,7 @@ function HomeScreen({ flow }: { flow: FlowControls }) {
 
   const submitIdea = () => {
     if (!trimmedLength) {
-      setError("先写下你的 Idea，再开始压力测试");
+      setError("先写下你的 Idea，再开始测试");
       return;
     }
 
@@ -747,7 +747,7 @@ function HomeScreen({ flow }: { flow: FlowControls }) {
 
             <span>
               <strong>IdeaDianping</strong>
-              <small>创业点子压力测试</small>
+              <small>创业点子测试</small>
             </span>
           </div>
 
@@ -767,7 +767,7 @@ function HomeScreen({ flow }: { flow: FlowControls }) {
         >
           <div className="hero-kicker">
             <LightningBoltIcon />
-            三位难伺候的评论员已上线
+            三位全网最难伺候的评论员已上线
           </div>
 
           <h1 id="hero-title" aria-label={fullTitle}>
@@ -788,7 +788,7 @@ function HomeScreen({ flow }: { flow: FlowControls }) {
                 if (error) setError("");
               }}
               placeholder="说清楚：谁遇到了什么问题，你准备怎么解决？"
-              aria-label="输入创业点子"
+              aria-label="输入点子"
               data-testid="idea-input"
             />
 
@@ -807,7 +807,7 @@ function HomeScreen({ flow }: { flow: FlowControls }) {
               onClick={submitIdea}
               data-testid="roast-button"
             >
-              开始压力测试
+              开始测试
               <span>ROAST MY IDEA</span>
               <LightningBoltIcon />
             </button>
@@ -829,7 +829,7 @@ function HomeScreen({ flow }: { flow: FlowControls }) {
             </div>
 
             <span className="live-indicator">
-              <i /> 三人意见互不统一
+              <i /> 三人24小时在线
             </span>
           </div>
 
@@ -864,12 +864,12 @@ function HomeScreen({ flow }: { flow: FlowControls }) {
                 公开处刑现场
               </span>
               <h2 id="feed-title">
-                最近接受暴击的 Idea
+                最近接受锐评的 Idea
               </h2>
             </div>
 
             <span className="live-indicator">
-              <i /> 43 秒前有新评价
+              <i /> 67 秒前有新评价
             </span>
           </div>
 
