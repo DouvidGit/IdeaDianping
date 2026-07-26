@@ -1,10 +1,10 @@
-import { MobileDeviceProvider } from "./mobile";
+import { MobileRuntime } from "./mobile";
 import Prototype from "./Prototype";
 
 export default function App() {
   return (
-    <MobileDeviceProvider>
+    <MobileRuntime>
       <Prototype />
-    </MobileDeviceProvider>
+    </MobileRuntime>
   );
 }
