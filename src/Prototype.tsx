@@ -772,7 +772,7 @@ function HomeScreen({ flow }: { flow: FlowControls }) {
         >
           <div className="hero-kicker">
             <LightningBoltIcon />
-            三位难伺候的评论员已上线
+            全网最难伺候的评论员已上线
           </div>
 
           <h1 id="hero-title" aria-label={fullTitle}>
@@ -812,7 +812,7 @@ function HomeScreen({ flow }: { flow: FlowControls }) {
               onClick={submitIdea}
               data-testid="roast-button"
             >
-              开始压力测试
+              开始点评
               <span>ROAST MY IDEA</span>
               <LightningBoltIcon />
             </button>
@@ -834,7 +834,7 @@ function HomeScreen({ flow }: { flow: FlowControls }) {
             </div>
 
             <span className="live-indicator">
-              <i /> 三人意见互不统一
+              <i /> 三人24小时在线
             </span>
           </div>
 
