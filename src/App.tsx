@@ -1,5 +1,10 @@
+import { MobileDeviceProvider } from "./mobile";
 import Prototype from "./Prototype";
 
 export default function App() {
-  return <Prototype />;
+  return (
+    <MobileDeviceProvider>
+      <Prototype />
+    </MobileDeviceProvider>
+  );
 }
