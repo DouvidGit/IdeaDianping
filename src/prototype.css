@@ -11,6 +11,7 @@
   --purple: #5f4b8b;
   --green: #2e6e58;
   --blue: #4169a8;
+  --mobile-safe-area-height: 0px; /* 强制归零安全边距 */
   font-family: -apple-system, BlinkMacSystemFont, "PingFang SC", "Microsoft YaHei", sans-serif;
   color: var(--ink);
 }
@@ -24,15 +25,25 @@ button {
   -webkit-tap-highlight-color: transparent;
 }
 
+/* ----- 核心容器 (PC 端自适应) ----- */
 .home-screen,
 .detail-screen,
 .profile-screen {
   background: var(--canvas);
+  min-height: 100vh; /* 保证高度撑满 */
+  display: flex;
+  justify-content: center; /* 内容水平居中 */
 }
 
-.home-content {
+/* 限定内容的实际显示区域（保持PC端阅读舒适度） */
+.home-content,
+.profile-content,
+.detail-content {
+  width: 100%;
+  max-width: 800px; /* 限制最大宽度，让长页面在PC上更优雅 */
   min-height: 100%;
-  padding: calc(var(--mobile-safe-area-height) + 14px) 16px calc(var(--mobile-safe-area-height) + 30px);
+  padding: 14px 20px 30px; /* 上 左右 下 */
+  box-sizing: border-box;
 }
 
 .brand-row,
@@ -49,7 +60,7 @@ button {
 
 .brand-row {
   justify-content: space-between;
-  margin-bottom: 14px;
+  margin-bottom: 18px;
 }
 
 .brand-lockup {
@@ -117,7 +128,7 @@ button {
 .roast-hero {
   position: relative;
   overflow: hidden;
-  padding: 17px 16px 15px;
+  padding: 23px 18px 18px;
   border: 1px solid rgba(255, 90, 42, 0.2);
   border-radius: 24px;
   background: linear-gradient(160deg, #fffaf7 0%, #fff 58%, #fff0e9 100%);
@@ -140,7 +151,7 @@ button {
   display: inline-flex;
   align-items: center;
   gap: 6px;
-  padding: 5px 8px;
+  padding: 6px 9px;
   border-radius: 999px;
   color: var(--brand-deep);
   background: var(--brand-soft);
@@ -152,28 +163,10 @@ button {
 }
 
 .roast-hero h1 {
-  display: flex;
-  min-height: 64px;
-  align-items: center;
-  margin: 12px 0;
-  font-size: 27px;
-  line-height: 1.16;
-  letter-spacing: -1.1px;
-}
-
-.roast-hero h1 > span {
-  min-width: 0;
-  overflow-wrap: anywhere;
-}
-
-.typewriter-cursor {
-  width: 3px;
-  height: 1em;
-  flex: 0 0 auto;
-  margin-left: 4px;
-  border-radius: 2px;
-  background: var(--brand);
-  animation: cursor-blink 760ms steps(1, end) infinite;
+  margin: 16px 0 8px;
+  font-size: 31px;
+  line-height: 1.12;
+  letter-spacing: -1.45px;
 }
 
 .roast-hero h1 em {
@@ -182,14 +175,14 @@ button {
 }
 
 .roast-hero > p {
-  margin: 0 0 12px;
+  margin: 0 0 17px;
   color: #65615d;
   font-size: 13px;
   line-height: 1.6;
 }
 
 .idea-composer {
-  padding: 10px;
+  padding: 12px;
   border: 1px solid var(--line);
   border-radius: 17px;
   background: white;
@@ -208,8 +201,8 @@ button {
 .idea-composer textarea {
   display: block;
   width: 100%;
-  min-height: 62px;
-  padding: 2px 2px 6px;
+  min-height: 88px;
+  padding: 2px 2px 8px;
   resize: none;
   border: 0;
   outline: 0;
@@ -227,7 +220,7 @@ button {
   display: flex;
   justify-content: space-between;
   gap: 12px;
-  margin-bottom: 8px;
+  margin-bottom: 11px;
   color: #9a948e;
   font-size: 10px;
   line-height: 1.35;
@@ -245,7 +238,7 @@ button {
 .primary-button {
   display: flex;
   width: 100%;
-  min-height: 44px;
+  min-height: 48px;
   align-items: center;
   justify-content: center;
   gap: 7px;
@@ -277,58 +270,7 @@ button {
 }
 
 .idea-feed {
-  padding-top: 23px;
-}
-
-.jury-lineup {
-  display: grid;
-  grid-template-columns: repeat(3, minmax(0, 1fr));
-  gap: 10px;
-  padding: 16px 10px;
-  border: 1px solid var(--line);
-  border-radius: 16px;
-  background: white;
-}
-
-.jury-person {
-  display: flex;
-  min-width: 0;
-  align-items: center;
-  flex-direction: column;
-  text-align: center;
-}
-
-.jury-person img {
-  width: 58px;
-  height: 58px;
-  object-fit: cover;
-  border-radius: 50%;
-  background: #f1efec;
-  box-shadow: 0 0 0 3px white, 0 0 0 4px #e8e3de;
-}
-
-.jury-person.tone-vc img {
-  box-shadow: 0 0 0 3px white, 0 0 0 4px var(--purple);
-}
-
-.jury-person.tone-engineer img {
-  box-shadow: 0 0 0 3px white, 0 0 0 4px var(--green);
-}
-
-.jury-person.tone-genz img {
-  box-shadow: 0 0 0 3px white, 0 0 0 4px var(--blue);
-}
-
-.jury-person strong {
-  margin-top: 10px;
-  font-size: 13px;
-}
-
-.jury-person small {
-  margin-top: 3px;
-  color: #8b857f;
-  font-size: 9px;
-  line-height: 1.35;
+  padding-top: 30px;
 }
 
 .section-heading {
@@ -522,7 +464,6 @@ button {
 
 .profile-content {
   min-height: 100%;
-  padding: 20px 16px calc(var(--mobile-safe-area-height) + 30px);
 }
 
 .profile-hero {
@@ -717,18 +658,8 @@ button {
   box-shadow: 0 8px 20px rgba(0, 0, 0, 0.18);
 }
 
-.toolbar-toast.is-error {
-  background: var(--danger);
-}
-
-.detail-toolbar .icon-button:disabled {
-  cursor: wait;
-  opacity: 0.55;
-}
-
 .detail-content {
   min-height: 100%;
-  padding-bottom: calc(var(--flow-footer-height) + var(--mobile-safe-area-height) + 24px);
 }
 
 .shop-header {
@@ -1133,25 +1064,25 @@ button {
 
 .detail-actions {
   display: grid;
-  height: auto;
-  grid-template-columns: repeat(2, minmax(0, 1fr));
-  gap: 10px;
-  margin-top: 12px;
-  padding: 0;
-  border: 0;
-  background: transparent;
+  height: 78px;
+  grid-template-columns: 1fr 1.18fr;
+  gap: 9px;
+  padding: 10px 13px calc(8px + var(--mobile-safe-area-height));
+  border-top: 1px solid rgba(226, 222, 217, 0.9);
+  background: rgba(255, 255, 255, 0.96);
+  backdrop-filter: blur(18px);
 }
 
 .detail-actions button {
   display: flex;
   min-width: 0;
-  min-height: 42px;
+  min-height: 48px;
   align-items: center;
   justify-content: center;
   gap: 7px;
-  padding: 0 16px;
-  border-radius: 9px;
-  font-size: 12px;
+  padding: 0 8px;
+  border-radius: 13px;
+  font-size: 11px;
   font-weight: 800;
 }
 
@@ -1242,11 +1173,6 @@ button {
   to { transform: rotate(360deg); }
 }
 
-@keyframes cursor-blink {
-  0%, 48% { opacity: 1; }
-  49%, 100% { opacity: 0; }
-}
-
 @media (prefers-reduced-motion: reduce) {
   .review-card,
   .summary-card,
@@ -1255,23 +1181,21 @@ button {
   .spin {
     animation: none;
   }
-
-  .typewriter-cursor {
-    animation: none;
-  }
 }
 
 @media (max-width: 350px) {
   .roast-hero {
-    padding: 15px 13px 13px;
+    padding: 19px 14px 15px;
   }
 
   .roast-hero h1 {
-    font-size: 24px;
+    font-size: 27px;
   }
 
   .detail-actions {
     gap: 6px;
+    padding-right: 9px;
+    padding-left: 9px;
   }
 
   .detail-actions button {
@@ -1279,38 +1203,11 @@ button {
   }
 }
 
-/* 1. 消灭手机壳，全屏撑满 */
-div.phone-device {
-  width: 100vw !important;
-  height: 100vh !important;
-  max-width: 100% !important;
-  max-height: 100% !important;
-  border: 0 !important;
-  border-radius: 0 !important;
-  box-shadow: none !important;
-  padding: 0 !important;
-  margin: 0 !important;
-  background: transparent !important;
-  transform: none !important;
-  position: relative !important;
-  overflow-y: auto !important; /* 允许长内容正常滚动 */
-  overflow-x: hidden !important;
-}
-
-/* 2. 让内部子元素也跟着正常铺满 */
-div.phone-device > * {
-  max-width: 100% !important;
-  box-sizing: border-box !important;
-}
-
-/* 3. 隐藏顶部时间、电量和网络状态栏 */
-div.phone-device .status-bar,
-div.phone-device [class*="status-bar"],
-div.phone-device [class*="ios-status"] {
-  display: none !important;
-}
-
-/* 4. 将原先为状态栏预留的安全边距归零 */
-:root {
-  --mobile-safe-area-height: 0px !important;
+/* ========== 桌面端网页适配（不需要手机壳了） ========== */
+@media (min-width: 768px) {
+  .home-content,
+  .profile-content,
+  .detail-content {
+    padding: 20px 40px 40px; /* 屏幕大的时候，让左右留白更多，更舒展 */
+  }
 }
