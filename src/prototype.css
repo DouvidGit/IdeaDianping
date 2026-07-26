@@ -11,6 +11,7 @@
   --purple: #5f4b8b;
   --green: #2e6e58;
   --blue: #4169a8;
+  --mobile-safe-area-height: 0px !important; /* 已转网页版，安全距离归零 */
   font-family: -apple-system, BlinkMacSystemFont, "PingFang SC", "Microsoft YaHei", sans-serif;
   color: var(--ink);
 }
@@ -1245,38 +1246,90 @@ button {
   }
 }
 
-/* 1. 消灭手机壳，全屏撑满 */
-div.phone-device {
-  width: 100vw !important;
-  height: 100vh !important;
-  max-width: 100% !important;
-  max-height: 100% !important;
-  border: 0 !important;
-  border-radius: 0 !important;
-  box-shadow: none !important;
-  padding: 0 !important;
-  margin: 0 !important;
-  background: transparent !important;
-  transform: none !important;
-  position: relative !important;
-  overflow-y: auto !important; /* 允许长内容正常滚动 */
-  overflow-x: hidden !important;
+/* =========================================================== */
+/* 桌面端与平板端适配布局 (根据队友 B 的要求 1-5 条重构)     */
+/* =========================================================== */
+
+/* 1. 768px 及以上（平板起步宽度，适配“检查 768px 宽度”要求） */
+@media (min-width: 768px) {
+  .home-content,
+  .detail-content,
+  .profile-content {
+    padding: 24px 32px 40px;
+  }
+
+  /* 评审团头像布局微调 */
+  .jury-lineup {
+    padding: 20px 20px;
+    gap: 16px;
+  }
 }
 
-/* 2. 让内部子元素也跟着正常铺满 */
-div.phone-device > * {
-  max-width: 100% !important;
-  box-sizing: border-box !important;
+/* 2. 900px 及以上（正式进入桌面布局：双列 & 限制最大宽度） */
+@media (min-width: 900px) {
+  /* 首页最大宽度 1180px */
+  .home-content {
+    max-width: 1180px;
+    margin: 0 auto;
+    padding: 24px 40px 40px;
+  }
+
+  /* 详情页最大宽度 840px */
+  .detail-content,
+  .profile-content {
+    max-width: 840px;
+    margin: 0 auto;
+    padding: 24px 40px 40px;
+  }
+
+  /* 首页 Idea 卡片改为双列布局 */
+  .idea-list {
+    display: grid;
+    grid-template-columns: repeat(2, 1fr);
+    gap: 16px;
+    padding: 16px;
+    border: none;
+    background: transparent;
+    border-radius: 0;
+  }
+
+  /* 单个 Idea 卡片铺开，去除原本的单行底边框 */
+  .idea-card {
+    border: 1px solid var(--line);
+    border-radius: 16px;
+    border-bottom: 1px solid var(--line) !important; /* 强制覆盖移动端的无底边框 */
+    box-shadow: 0 4px 12px rgba(0,0,0,0.03);
+    transition: box-shadow 0.2s ease;
+  }
+
+  .idea-card:hover,
+  .idea-card:active {
+    box-shadow: 0 8px 20px rgba(0,0,0,0.08);
+    background: white;
+  }
 }
 
-/* 3. 隐藏顶部时间、电量和网络状态栏 */
-div.phone-device .status-bar,
-div.phone-device [class*="status-bar"],
-div.phone-device [class*="ios-status"] {
-  display: none !important;
+/* 3. 1440px 及以上（适配“检查 1440px 宽度”要求：三列布局） */
+@media (min-width: 1440px) {
+  .idea-list {
+    grid-template-columns: repeat(3, 1fr);
+  }
 }
 
-/* 4. 将原先为状态栏预留的安全边距归零 */
-:root {
-  --mobile-safe-area-height: 0px !important;
+/* 4. 390px 及以下（适配“检查 390px 宽度”要求） */
+@media (max-width: 390px) {
+  .home-content {
+    padding: 14px 12px 30px;
+  }
+  .roast-hero h1 {
+    font-size: 24px;
+    min-height: auto;
+  }
+  .brand-lockup strong {
+    font-size: 15px;
+  }
+  .brand-lockup small {
+    font-size: 8px;
+    letter-spacing: 1px;
+  }
 }
