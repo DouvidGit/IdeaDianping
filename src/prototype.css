@@ -49,7 +49,7 @@ button {
 
 .brand-row {
   justify-content: space-between;
-  margin-bottom: 18px;
+  margin-bottom: 14px;
 }
 
 .brand-lockup {
@@ -117,7 +117,7 @@ button {
 .roast-hero {
   position: relative;
   overflow: hidden;
-  padding: 23px 18px 18px;
+  padding: 17px 16px 15px;
   border: 1px solid rgba(255, 90, 42, 0.2);
   border-radius: 24px;
   background: linear-gradient(160deg, #fffaf7 0%, #fff 58%, #fff0e9 100%);
@@ -140,7 +140,7 @@ button {
   display: inline-flex;
   align-items: center;
   gap: 6px;
-  padding: 6px 9px;
+  padding: 5px 8px;
   border-radius: 999px;
   color: var(--brand-deep);
   background: var(--brand-soft);
@@ -152,10 +152,10 @@ button {
 }
 
 .roast-hero h1 {
-  margin: 16px 0 8px;
-  font-size: 31px;
-  line-height: 1.12;
-  letter-spacing: -1.45px;
+  margin: 12px 0 6px;
+  font-size: 27px;
+  line-height: 1.16;
+  letter-spacing: -1.1px;
 }
 
 .roast-hero h1 em {
@@ -164,14 +164,14 @@ button {
 }
 
 .roast-hero > p {
-  margin: 0 0 17px;
+  margin: 0 0 12px;
   color: #65615d;
   font-size: 13px;
   line-height: 1.6;
 }
 
 .idea-composer {
-  padding: 12px;
+  padding: 10px;
   border: 1px solid var(--line);
   border-radius: 17px;
   background: white;
@@ -190,8 +190,8 @@ button {
 .idea-composer textarea {
   display: block;
   width: 100%;
-  min-height: 88px;
-  padding: 2px 2px 8px;
+  min-height: 62px;
+  padding: 2px 2px 6px;
   resize: none;
   border: 0;
   outline: 0;
@@ -209,7 +209,7 @@ button {
   display: flex;
   justify-content: space-between;
   gap: 12px;
-  margin-bottom: 11px;
+  margin-bottom: 8px;
   color: #9a948e;
   font-size: 10px;
   line-height: 1.35;
@@ -227,7 +227,7 @@ button {
 .primary-button {
   display: flex;
   width: 100%;
-  min-height: 48px;
+  min-height: 44px;
   align-items: center;
   justify-content: center;
   gap: 7px;
@@ -259,7 +259,7 @@ button {
 }
 
 .idea-feed {
-  padding-top: 30px;
+  padding-top: 23px;
 }
 
 .section-heading {
@@ -646,6 +646,15 @@ button {
   background: #222;
   font-size: 10px;
   box-shadow: 0 8px 20px rgba(0, 0, 0, 0.18);
+}
+
+.toolbar-toast.is-error {
+  background: var(--danger);
+}
+
+.detail-toolbar .icon-button:disabled {
+  cursor: wait;
+  opacity: 0.55;
 }
 
 .detail-content {
@@ -1056,8 +1065,9 @@ button {
 .detail-actions {
   display: grid;
   height: 78px;
-  grid-template-columns: 1fr 1.18fr;
-  gap: 9px;
+  grid-template-columns: max-content max-content;
+  justify-content: end;
+  gap: 8px;
   padding: 10px 13px calc(8px + var(--mobile-safe-area-height));
   border-top: 1px solid rgba(226, 222, 217, 0.9);
   background: rgba(255, 255, 255, 0.96);
@@ -1067,12 +1077,12 @@ button {
 .detail-actions button {
   display: flex;
   min-width: 0;
-  min-height: 48px;
+  min-height: 40px;
   align-items: center;
   justify-content: center;
   gap: 7px;
-  padding: 0 8px;
-  border-radius: 13px;
+  padding: 0 14px;
+  border-radius: 11px;
   font-size: 11px;
   font-weight: 800;
 }
@@ -1176,11 +1186,11 @@ button {
 
 @media (max-width: 350px) {
   .roast-hero {
-    padding: 19px 14px 15px;
+    padding: 15px 13px 13px;
   }
 
   .roast-hero h1 {
-    font-size: 27px;
+    font-size: 24px;
   }
 
   .detail-actions {

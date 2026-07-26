@@ -241,7 +241,7 @@ export async function onRequestPost({ request, env }) {
 
   if (
     !PERSONAS[persona] ||
-    ideaText.length < 12 ||
+    ideaText.length < 1 ||
     ideaText.length > 300
   ) {
     return json(
