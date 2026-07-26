@@ -151,6 +151,45 @@ button {
   height: 13px;
 }
 
+.roast-steps {
+  display: flex;
+  align-items: center;
+  gap: 5px;
+  margin: 0 0 12px;
+  padding: 0;
+  color: #756e68;
+  list-style: none;
+}
+
+.roast-steps li {
+  display: flex;
+  min-width: 0;
+  align-items: center;
+  gap: 4px;
+  font-size: 10px;
+  font-weight: 750;
+  white-space: nowrap;
+}
+
+.roast-steps li > i {
+  display: grid;
+  width: 17px;
+  height: 17px;
+  place-items: center;
+  border-radius: 50%;
+  color: var(--brand-deep);
+  background: var(--brand-soft);
+  font-size: 9px;
+  font-style: normal;
+  font-weight: 900;
+}
+
+.roast-steps svg {
+  width: 11px;
+  height: 11px;
+  color: #b2aca6;
+}
+
 .roast-hero h1 {
   display: flex;
   min-height: 64px;
@@ -586,16 +625,23 @@ button {
   gap: 10px;
 }
 
+.profile-card-shell {
+  overflow: hidden;
+  border: 1px solid var(--line);
+  border-radius: 17px;
+  background: white;
+  box-shadow: 0 5px 16px rgba(50, 40, 34, 0.04);
+}
+
 .profile-card {
   display: block;
   width: 100%;
   padding: 15px;
   text-align: left;
-  border: 1px solid var(--line);
-  border-radius: 17px;
+  border: 0;
+  border-radius: 0;
   color: var(--ink);
-  background: white;
-  box-shadow: 0 5px 16px rgba(50, 40, 34, 0.04);
+  background: transparent;
 }
 
 .profile-card > strong,
@@ -649,6 +695,88 @@ button {
 
 .profile-card-meta i {
   font-style: normal;
+}
+
+.permanent-delete-button {
+  display: flex;
+  min-height: 38px;
+  align-items: center;
+  justify-content: center;
+  gap: 6px;
+  margin: 0 15px 14px;
+  padding: 0 14px;
+  border: 1px solid #efcfcc;
+  border-radius: 10px;
+  color: var(--danger);
+  background: #fff8f7;
+  font-size: 11px;
+  font-weight: 850;
+}
+
+.permanent-delete-button svg {
+  width: 15px;
+  height: 15px;
+}
+
+.delete-confirmation {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  padding: 4px 18px 14px;
+  text-align: center;
+}
+
+.delete-confirmation-icon {
+  display: grid;
+  width: 54px;
+  height: 54px;
+  place-items: center;
+  border-radius: 18px;
+  color: white;
+  background: var(--danger);
+}
+
+.delete-confirmation-icon svg {
+  width: 24px;
+  height: 24px;
+}
+
+.delete-confirmation > strong {
+  max-width: 100%;
+  overflow: hidden;
+  margin-top: 12px;
+  font-size: 15px;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.delete-confirmation > p {
+  margin: 6px 0 15px;
+  color: #77706a;
+  font-size: 12px;
+}
+
+.delete-confirmation > div {
+  display: grid;
+  width: 100%;
+  grid-template-columns: 1fr 1.35fr;
+  gap: 8px;
+}
+
+.delete-confirmation button {
+  min-height: 44px;
+  border: 1px solid #ddd8d3;
+  border-radius: 12px;
+  color: #4b4541;
+  background: white;
+  font-size: 12px;
+  font-weight: 800;
+}
+
+.delete-confirmation button:last-child {
+  border-color: var(--danger);
+  color: white;
+  background: var(--danger);
 }
 
 .profile-empty {
@@ -1029,6 +1157,15 @@ button {
 
 .summary-topline {
   justify-content: space-between;
+}
+
+.roast-stamp-hero {
+  display: block;
+  margin-bottom: 13px;
+  color: #ffb99e;
+  font-size: clamp(30px, 9vw, 42px);
+  line-height: 1;
+  letter-spacing: -1.5px;
 }
 
 .summary-topline > span {
