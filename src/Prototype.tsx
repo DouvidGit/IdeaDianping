@@ -807,7 +807,7 @@ function HomeScreen({ flow }: { flow: FlowControls }) {
               onClick={submitIdea}
               data-testid="roast-button"
             >
-              开始测试
+              开始点评
               <span>ROAST MY IDEA</span>
               <LightningBoltIcon />
             </button>
@@ -1142,7 +1142,7 @@ function DetailHeader({
         <ArrowLeftIcon />
       </button>
 
-      <strong>Idea 压力测试</strong>
+      <strong>Idea 点子测评</strong>
 
       <button
         className="icon-button"
@@ -1620,7 +1620,7 @@ function IdeaDetail({
       >
         <section className="shop-header">
           <div className="shop-label">
-            <span>NEW</span> IDEA 压力测试
+            <span>NEW</span> IDEA 测评
           </div>
 
           <h1>{idea.name}</h1>
@@ -1658,7 +1658,7 @@ function IdeaDetail({
           <div className="section-heading review-heading">
             <div>
               <span className="section-eyebrow">
-                三方压力测试
+                三方测评
               </span>
               <h2 id="reviews-title">评价（3）</h2>
             </div>
