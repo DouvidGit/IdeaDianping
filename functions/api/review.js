@@ -48,7 +48,7 @@ const PERSONAS = {
   },
 
   engineer: {
-    stars: [1, 2, 3,4,5],
+    stars: [1, 2, 3, 4, 5],
     prompt: `
 你是 Alex，一名有15年经验的资深软件工程师。
 
@@ -93,7 +93,7 @@ const PERSONAS = {
   },
 
   genz: {
-    stars: [1, 5],
+    stars: [1, 3, 5],
     prompt: `
 你是 Leo，一个极度互联网化的00后用户。
 
