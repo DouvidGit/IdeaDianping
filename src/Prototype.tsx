@@ -329,12 +329,14 @@ async function postJson<T>(
   }
 }
 
+// ✅ 修复 2：增加标题字数限制，避免在 PC 端被强行截断
 function makeDisplayName(text: string) {
   const firstSentence =
     text.split(/[。！？!?\n]/)[0]?.trim() || text.trim();
 
-  return firstSentence.length > 18
-    ? `${firstSentence.slice(0, 18)}…`
+  // 从 18 改成了 40，让自动生成的标题在电脑屏幕上更完整
+  return firstSentence.length > 40
+    ? `${firstSentence.slice(0, 40)}…`
     : firstSentence;
 }
 
@@ -1195,6 +1197,7 @@ function createProfileScreen(): FlowScreen {
   };
 }
 
+// ✅ 修复 1：把顶部工具栏固定在页面最顶端
 function DetailHeader({
   flow,
   idea,
@@ -1219,7 +1222,25 @@ function DetailHeader({
   };
 
   return (
-    <div className="detail-toolbar">
+    <div
+      className="detail-toolbar"
+      style={{
+        position: 'fixed',
+        top: 0,
+        left: 0,
+        width: '100%',
+        zIndex: 1000,
+        backgroundColor: 'rgba(255, 255, 255, 0.95)',
+        backdropFilter: 'blur(18px)',
+        height: '54px',
+        display: 'flex',
+        alignItems: 'center',
+        justifyContent: 'space-between',
+        padding: '0 8px',
+        borderBottom: '1px solid rgba(232, 228, 223, 0.9)',
+        boxSizing: 'border-box'
+      }}
+    >
       <button
         className="icon-button"
         type="button"
@@ -1719,9 +1740,11 @@ function IdeaDetail({
 
   return (
     <MobileScroll className="app-screen detail-screen">
+      {/* ✅ 配合上面固定的顶部栏，给内容上方留出 74px 的安全距离 */}
       <main
         className="detail-content"
         data-testid="detail-screen"
+        style={{ paddingTop: '74px' }}
       >
         <section className="shop-header">
           <div className="shop-label">
