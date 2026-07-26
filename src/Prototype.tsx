@@ -874,7 +874,7 @@ function HomeScreen({ flow }: { flow: FlowControls }) {
             </div>
 
             <span className="live-indicator">
-              <i /> 43 秒前有新评价
+              <i /> 67 秒前有新评价
             </span>
           </div>
 
@@ -1147,7 +1147,7 @@ function DetailHeader({
         <ArrowLeftIcon />
       </button>
 
-      <strong>Idea 压力测试</strong>
+      <strong>Idea 点评</strong>
 
       <button
         className="icon-button"
@@ -1637,7 +1637,7 @@ function IdeaDetail({
       >
         <section className="shop-header">
           <div className="shop-label">
-            <span>NEW</span> IDEA 压力测试
+            <span>NEW</span> IDEA 点评
           </div>
 
           <h1>{idea.name}</h1>
