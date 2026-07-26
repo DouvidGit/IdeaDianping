@@ -66,6 +66,19 @@ const IDEA_STORAGE_KEY = "ideadianping:ideas:v1";
 const STORAGE_EVENT = "ideadianping:ideas-changed";
 const personaIds: PersonaId[] = ["vc", "engineer", "genz"];
 
+const heroTitles = [
+  "Any IDEAs?",
+  "输入你的想法，接受锐评。",
+  "这个点子，扛得住吗？",
+  "先别做，先被骂。",
+] as const;
+
+const personaShortIntro: Record<PersonaId, string> = {
+  vc: "只问值不值钱",
+  engineer: "专拆技术幻想",
+  genz: "三秒决定去留",
+};
+
 const personaMeta: Record<
   PersonaId,
   {
@@ -92,27 +105,6 @@ const personaMeta: Record<
     subtitle: "00 后用户 · 3 秒不爽就卸载",
     avatar: "/assets/reviewers/genz.png",
     tone: "genz",
-  },
-};
-
-const personaPreview: Record<
-  PersonaId,
-  {
-    label: string;
-    quote: string;
-  }
-> = {
-  vc: {
-    label: "商业审判",
-    quote: "有意思，但这到底是一家公司，还是一个功能？",
-  },
-  engineer: {
-    label: "技术拆台",
-    quote: "很好。现在告诉我，你的数据到底在哪里？",
-  },
-  genz: {
-    label: "用户暴击",
-    quote: "听起来挺酷，但我为什么要专门下载？",
   },
 };
 
@@ -661,10 +653,57 @@ async function downloadRoastCard(idea: Idea) {
   window.setTimeout(() => URL.revokeObjectURL(url), 30_000);
 }
 
+function useTypewriterTitle() {
+  const [titleIndex, setTitleIndex] = useState(0);
+  const [visibleCharacters, setVisibleCharacters] = useState(0);
+  const [phase, setPhase] = useState<"typing" | "deleting">(
+    "typing",
+  );
+  const title = heroTitles[titleIndex];
+
+  useEffect(() => {
+    let delay = phase === "typing" ? 86 : 42;
+
+    if (phase === "typing" && visibleCharacters === title.length) {
+      delay = 2200;
+    } else if (phase === "deleting" && visibleCharacters === 0) {
+      delay = 260;
+    }
+
+    const timer = window.setTimeout(() => {
+      if (phase === "typing") {
+        if (visibleCharacters < title.length) {
+          setVisibleCharacters((current) => current + 1);
+        } else {
+          setPhase("deleting");
+        }
+        return;
+      }
+
+      if (visibleCharacters > 0) {
+        setVisibleCharacters((current) => current - 1);
+      } else {
+        setTitleIndex(
+          (current) => (current + 1) % heroTitles.length,
+        );
+        setPhase("typing");
+      }
+    }, delay);
+
+    return () => window.clearTimeout(timer);
+  }, [phase, title.length, visibleCharacters]);
+
+  return {
+    fullTitle: title,
+    visibleTitle: title.slice(0, visibleCharacters),
+  };
+}
+
 function HomeScreen({ flow }: { flow: FlowControls }) {
   const keyboard = useKeyboard();
   const [ideaText, setIdeaText] = useState("");
   const [error, setError] = useState("");
+  const { fullTitle, visibleTitle } = useTypewriterTitle();
   const trimmedLength = ideaText.trim().length;
 
   const openIdea = (idea: Idea, live = false) => {
@@ -736,16 +775,10 @@ function HomeScreen({ flow }: { flow: FlowControls }) {
             三位难伺候的评论员已上线
           </div>
 
-          <h1 id="hero-title">
-            别急着改变世界，
-            <br />
-            <em>先证明它不是伪需求。</em>
+          <h1 id="hero-title" aria-label={fullTitle}>
+            <span aria-hidden="true">{visibleTitle}</span>
+            <i className="typewriter-cursor" aria-hidden="true" />
           </h1>
-
-          <p>
-            Victor 审商业，Alex 拆技术，Leo
-            决定用户会不会三秒卸载。不鼓掌，只找最可能让项目失败的问题。
-          </p>
 
           <div
             className={`idea-composer ${
@@ -805,35 +838,21 @@ function HomeScreen({ flow }: { flow: FlowControls }) {
             </span>
           </div>
 
-          <div className="review-list">
+          <div className="jury-lineup">
             {personaIds.map((personaId) => {
               const persona = personaMeta[personaId];
-              const preview = personaPreview[personaId];
 
               return (
                 <article
-                  className={`review-card tone-${persona.tone}`}
+                  className={`jury-person tone-${persona.tone}`}
                   key={personaId}
                 >
-                  <header className="reviewer-row">
-                    <img
-                      src={persona.avatar}
-                      alt={`${persona.name}头像`}
-                    />
-
-                    <div>
-                      <strong>{persona.name}</strong>
-                      <small>{persona.subtitle}</small>
-                    </div>
-
-                    <span className="review-date">
-                      {preview.label}
-                    </span>
-                  </header>
-
-                  <p className="review-copy">
-                    “{preview.quote}”
-                  </p>
+                  <img
+                    src={persona.avatar}
+                    alt={`${persona.name}头像`}
+                  />
+                  <strong>{persona.name}</strong>
+                  <small>{personaShortIntro[personaId]}</small>
                 </article>
               );
             })}
@@ -1715,7 +1734,10 @@ function IdeaDetail({
               )}
             </button>
           ) : (
-            <SummaryCard summary={summary} />
+            <>
+              <SummaryCard summary={summary} />
+              <ActionFooter idea={idea} />
+            </>
           )}
 
           {summaryError && !summary ? (
@@ -1740,8 +1762,6 @@ function createDetailScreen(
     header: (flow) => (
       <DetailHeader flow={flow} idea={idea} />
     ),
-    footerHeight: 78,
-    footer: () => <ActionFooter idea={idea} />,
     render: () => (
       <IdeaDetail idea={idea} live={live} />
     ),
