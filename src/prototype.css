@@ -1193,3 +1193,29 @@ button {
     font-size: 10px;
   }
 }
+
+/* 隐藏手机边框、阴影、圆角，让内容铺满全屏 */
+.phone-frame {
+  border: none !important;
+  box-shadow: none !important;
+  max-width: 100% !important;
+  height: 100vh !important;
+  border-radius: 0 !important;
+  padding: 0 !important;
+  background: transparent !important;
+}
+
+/* 隐藏虚拟键盘 */
+.keyboard {
+  display: none !important;
+}
+
+/* 如果有状态栏（时间/电量），也隐藏 */
+.status-bar {
+  display: none !important;
+}
+
+/* 确保内容区域占满 */
+.app-screen {
+  height: 100vh !important;
+}
