@@ -63,7 +63,7 @@ export async function onRequestPost({ request, env }) {
 
   const ideaText = typeof body.ideaText === "string" ? body.ideaText.trim() : "";
   const reviews = Array.isArray(body.reviews) ? body.reviews.slice(0, 3) : [];
-  if (ideaText.length < 12 || ideaText.length > 300 || reviews.length < 2) {
+  if (ideaText.length < 1 || ideaText.length > 300 || reviews.length < 2) {
     return json({ error: "至少需要两条合法评论" }, 400);
   }
 

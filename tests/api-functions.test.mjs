@@ -37,7 +37,7 @@ test("review endpoint sends the low-cost structured request", { concurrency: fal
 
   try {
     const response = await reviewRequest({
-      request: request("/api/review", { ideaText: "这是一个长度足够的测试创业点子描述", persona: "vc" }),
+      request: request("/api/review", { ideaText: "点", persona: "vc" }),
       env: { DEEPSEEK_API_KEY: "unit-test-secret" },
     });
     assert.equal(response.status, 200);
@@ -47,6 +47,35 @@ test("review endpoint sends the low-cost structured request", { concurrency: fal
     assert.deepEqual(captured.body.thinking, { type: "disabled" });
     assert.deepEqual(captured.body.response_format, { type: "json_object" });
     assert.equal(captured.body.max_tokens, 520);
+  } finally {
+    globalThis.fetch = originalFetch;
+  }
+});
+
+test("review endpoint accepts the 300 character boundary and rejects blank ideas", { concurrency: false }, async () => {
+  const originalFetch = globalThis.fetch;
+  globalThis.fetch = async () => new Response(JSON.stringify({
+    choices: [{ message: { content: JSON.stringify({
+      reviewerId: "vc",
+      stars: 1,
+      reactionTag: "边界测试",
+      review: "这是一条用于验证三百字输入边界的结构化测试评论。",
+      fatalFlaw: "边界仍需验证。",
+      nextTest: "提交真实行为测试。",
+    }) } }],
+  }), { status: 200 });
+
+  try {
+    const boundaryResponse = await reviewRequest({
+      request: request("/api/review", { ideaText: "点".repeat(300), persona: "vc" }),
+      env: { DEEPSEEK_API_KEY: "unit-test-secret" },
+    });
+    const blankResponse = await reviewRequest({
+      request: request("/api/review", { ideaText: "   ", persona: "vc" }),
+      env: { DEEPSEEK_API_KEY: "unit-test-secret" },
+    });
+    assert.equal(boundaryResponse.status, 200);
+    assert.equal(blankResponse.status, 400);
   } finally {
     globalThis.fetch = originalFetch;
   }
@@ -82,7 +111,7 @@ test("summary endpoint validates and returns structured judgment", { concurrency
       { reviewerId: "engineer", stars: 2, review: "b" },
     ];
     const response = await summaryRequest({
-      request: request("/api/summary", { ideaText: "这是一个长度足够的测试创业点子描述", reviews }),
+      request: request("/api/summary", { ideaText: "点", reviews }),
       env: { DEEPSEEK_API_KEY: "unit-test-secret" },
     });
     assert.equal(response.status, 200);
@@ -92,4 +121,15 @@ test("summary endpoint validates and returns structured judgment", { concurrency
   } finally {
     globalThis.fetch = originalFetch;
   }
+});
+
+test("summary endpoint rejects a blank idea", async () => {
+  const response = await summaryRequest({
+    request: request("/api/summary", {
+      ideaText: "   ",
+      reviews: [{ reviewerId: "vc" }, { reviewerId: "engineer" }],
+    }),
+    env: { DEEPSEEK_API_KEY: "unit-test-secret" },
+  });
+  assert.equal(response.status, 400);
 });

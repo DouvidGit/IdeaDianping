@@ -5,10 +5,10 @@ import {
   ChatBubbleIcon,
   CheckCircledIcon,
   ChevronRightIcon,
+  DownloadIcon,
   LightningBoltIcon,
   MagicWandIcon,
   PersonIcon,
-  Share2Icon,
   StarFilledIcon,
   StarIcon,
   TrashIcon,
@@ -416,6 +416,251 @@ function StarRating({
   );
 }
 
+function roundedRect(
+  context: CanvasRenderingContext2D,
+  x: number,
+  y: number,
+  width: number,
+  height: number,
+  radius: number,
+  color: string,
+) {
+  const safeRadius = Math.min(radius, width / 2, height / 2);
+  context.beginPath();
+  context.moveTo(x + safeRadius, y);
+  context.arcTo(x + width, y, x + width, y + height, safeRadius);
+  context.arcTo(x + width, y + height, x, y + height, safeRadius);
+  context.arcTo(x, y + height, x, y, safeRadius);
+  context.arcTo(x, y, x + width, y, safeRadius);
+  context.closePath();
+  context.fillStyle = color;
+  context.fill();
+}
+
+function canvasLines(
+  context: CanvasRenderingContext2D,
+  text: string,
+  maxWidth: number,
+  maxLines: number,
+) {
+  const lines: string[] = [];
+  let current = "";
+
+  for (const character of Array.from(text.trim())) {
+    const candidate = current + character;
+    if (current && context.measureText(candidate).width > maxWidth) {
+      lines.push(current);
+      current = character;
+      if (lines.length === maxLines) break;
+    } else {
+      current = candidate;
+    }
+  }
+
+  if (lines.length < maxLines && current) lines.push(current);
+  if (
+    lines.length === maxLines &&
+    Array.from(text.trim()).join("") !== lines.join("")
+  ) {
+    let last = lines[maxLines - 1];
+    while (
+      last &&
+      context.measureText(`${last}…`).width > maxWidth
+    ) {
+      last = last.slice(0, -1);
+    }
+    lines[maxLines - 1] = `${last}…`;
+  }
+  return lines;
+}
+
+function drawCanvasLines(
+  context: CanvasRenderingContext2D,
+  lines: string[],
+  x: number,
+  y: number,
+  lineHeight: number,
+) {
+  lines.forEach((line, index) =>
+    context.fillText(line, x, y + index * lineHeight),
+  );
+}
+
+async function createRoastCard(idea: Idea) {
+  await document.fonts?.ready;
+  const stored = readIdeaRecords().find(
+    (record) => record.id === idea.id,
+  );
+  const exportIdea: Idea = { ...idea, ...stored };
+  const reviews = exportIdea.reviews || [];
+  const average = reviews.length
+    ? reviews.reduce(
+        (total, review) => total + review.stars,
+        0,
+      ) / reviews.length
+    : 0;
+  const canvas = document.createElement("canvas");
+  canvas.width = 1080;
+  canvas.height = 1350;
+  const context = canvas.getContext("2d");
+  if (!context) throw new Error("Canvas unavailable");
+
+  context.fillStyle = "#f6f3ef";
+  context.fillRect(0, 0, canvas.width, canvas.height);
+  context.fillStyle = "#ff5a2a";
+  context.fillRect(0, 0, 18, canvas.height);
+  roundedRect(context, 72, 58, 936, 88, 28, "#171717");
+  context.fillStyle = "#ffffff";
+  context.font =
+    '800 28px "PingFang SC", "Microsoft YaHei", sans-serif';
+  context.fillText("IDEADIANPING", 108, 113);
+  context.fillStyle = "#ffb89f";
+  context.font =
+    '700 22px "PingFang SC", "Microsoft YaHei", sans-serif';
+  context.textAlign = "right";
+  context.fillText("AI 锐评报告", 972, 112);
+  context.textAlign = "left";
+
+  context.fillStyle = "#171717";
+  context.font =
+    '900 56px "PingFang SC", "Microsoft YaHei", sans-serif';
+  const titleLines = canvasLines(context, exportIdea.name, 900, 2);
+  drawCanvasLines(context, titleLines, 72, 220, 70);
+  const descriptionY = 220 + titleLines.length * 70 + 16;
+  context.fillStyle = "#69635e";
+  context.font =
+    '400 25px "PingFang SC", "Microsoft YaHei", sans-serif';
+  drawCanvasLines(
+    context,
+    canvasLines(context, exportIdea.description, 900, 2),
+    72,
+    descriptionY,
+    38,
+  );
+
+  const scoreY = descriptionY + 106;
+  context.fillStyle = "#ff5a2a";
+  context.font =
+    '900 64px "PingFang SC", "Microsoft YaHei", sans-serif';
+  context.fillText(average ? average.toFixed(1) : "--", 72, scoreY);
+  context.fillStyle = "#b13a17";
+  context.font =
+    '700 25px "PingFang SC", "Microsoft YaHei", sans-serif';
+  context.fillText(
+    `${reviews.length}/3 位锐评官已回应`,
+    210,
+    scoreY - 8,
+  );
+
+  const cardColors: Record<PersonaId, string> = {
+    vc: "#f2edf9",
+    engineer: "#eaf5f0",
+    genz: "#edf3fb",
+  };
+  personaIds.forEach((reviewerId, index) => {
+    const review = reviews.find(
+      (item) => item.reviewerId === reviewerId,
+    );
+    const persona = personaMeta[reviewerId];
+    const y = scoreY + 38 + index * 205;
+    roundedRect(
+      context,
+      72,
+      y,
+      936,
+      177,
+      24,
+      cardColors[reviewerId],
+    );
+    context.fillStyle = "#171717";
+    context.font =
+      '800 25px "PingFang SC", "Microsoft YaHei", sans-serif';
+    context.fillText(persona.name, 104, y + 44);
+    context.fillStyle = "#ff5a2a";
+    context.font =
+      '800 22px "PingFang SC", "Microsoft YaHei", sans-serif';
+    context.textAlign = "right";
+    context.fillText(
+      review
+        ? `${"★".repeat(review.stars)} ${review.reactionTag}`
+        : "等待锐评",
+      976,
+      y + 44,
+    );
+    context.textAlign = "left";
+    context.fillStyle = "#514b47";
+    context.font =
+      '400 25px "PingFang SC", "Microsoft YaHei", sans-serif';
+    const copy =
+      review?.review || "这位锐评官还在组织攻击语言。";
+    drawCanvasLines(
+      context,
+      canvasLines(context, copy, 850, 2),
+      104,
+      y + 91,
+      38,
+    );
+  });
+
+  const verdictY = scoreY + 664;
+  roundedRect(context, 72, verdictY, 936, 170, 26, "#171717");
+  context.fillStyle = "#ffb89f";
+  context.font =
+    '800 21px "PingFang SC", "Microsoft YaHei", sans-serif';
+  context.fillText("@IDEA 最终审判", 106, verdictY + 43);
+  context.fillStyle = "#ffffff";
+  context.font =
+    '800 32px "PingFang SC", "Microsoft YaHei", sans-serif';
+  context.fillText(
+    exportIdea.summary?.verdictLabel || "等待最终审判",
+    106,
+    verdictY + 91,
+  );
+  context.fillStyle = "#d7d1cc";
+  context.font =
+    '400 23px "PingFang SC", "Microsoft YaHei", sans-serif';
+  drawCanvasLines(
+    context,
+    canvasLines(
+      context,
+      exportIdea.summary?.oneLine ||
+        "三位锐评官到齐后，点击 @Idea 总结一下。",
+      830,
+      2,
+    ),
+    106,
+    verdictY + 130,
+    32,
+  );
+
+  return new Promise<Blob>((resolve, reject) => {
+    canvas.toBlob(
+      (blob) =>
+        blob
+          ? resolve(blob)
+          : reject(new Error("PNG export failed")),
+      "image/png",
+    );
+  });
+}
+
+async function downloadRoastCard(idea: Idea) {
+  const blob = await createRoastCard(idea);
+  const url = URL.createObjectURL(blob);
+  const anchor = document.createElement("a");
+  const safeName =
+    idea.name.replace(/[\\/:*?"<>|]/g, "-").slice(0, 36) || "Idea";
+  anchor.href = url;
+  anchor.download = `IdeaDianping-${safeName}.png`;
+  anchor.rel = "noopener";
+  const supportsDownload = "download" in HTMLAnchorElement.prototype;
+  if (!supportsDownload) anchor.target = "_blank";
+  document.body.appendChild(anchor);
+  anchor.click();
+  anchor.remove();
+  window.setTimeout(() => URL.revokeObjectURL(url), 30_000);
+}
+
 function HomeScreen({ flow }: { flow: FlowControls }) {
   const keyboard = useKeyboard();
   const [ideaText, setIdeaText] = useState("");
@@ -427,8 +672,8 @@ function HomeScreen({ flow }: { flow: FlowControls }) {
   };
 
   const submitIdea = () => {
-    if (trimmedLength < 12) {
-      setError("至少说清楚：给谁用、解决什么问题");
+    if (!trimmedLength) {
+      setError("先写下你的 Idea，再开始压力测试");
       return;
     }
 
@@ -530,7 +775,7 @@ function HomeScreen({ flow }: { flow: FlowControls }) {
             <button
               className="primary-button"
               type="button"
-              disabled={trimmedLength < 12}
+              disabled={!trimmedLength}
               onClick={submitIdea}
               data-testid="roast-button"
             >
@@ -856,26 +1101,20 @@ function DetailHeader({
   flow: FlowControls;
   idea: Idea;
 }) {
-  const [shared, setShared] = useState(false);
+  const [exportState, setExportState] = useState<
+    "idle" | "working" | "success" | "error"
+  >("idle");
 
-  const share = async () => {
-    const text = `我在 IdeaDianping 上把「${idea.name}」送去接受压力测试了：${idea.buzz}`;
-
+  const exportCard = async () => {
+    if (exportState === "working") return;
+    setExportState("working");
     try {
-      if (navigator.share) {
-        await navigator.share({
-          title: idea.name,
-          text,
-        });
-      } else {
-        await navigator.clipboard.writeText(text);
-      }
-
-      setShared(true);
-      window.setTimeout(() => setShared(false), 1600);
+      await downloadRoastCard(idea);
+      setExportState("success");
     } catch {
-      // 用户取消分享时不进行提示。
+      setExportState("error");
     }
+    window.setTimeout(() => setExportState("idle"), 1800);
   };
 
   return (
@@ -894,15 +1133,26 @@ function DetailHeader({
       <button
         className="icon-button"
         type="button"
-        aria-label="分享"
-        onClick={share}
+        aria-label="下载锐评卡"
+        disabled={exportState === "working"}
+        onClick={() => void exportCard()}
+        data-testid="export-card-button"
       >
-        <Share2Icon />
+        {exportState === "working" ? (
+          <UpdateIcon className="spin" />
+        ) : (
+          <DownloadIcon />
+        )}
       </button>
 
-      {shared ? (
+      {exportState === "success" ? (
         <span className="toolbar-toast">
-          <CheckCircledIcon /> 已复制
+          <CheckCircledIcon /> 锐评卡已下载
+        </span>
+      ) : null}
+      {exportState === "error" ? (
+        <span className="toolbar-toast is-error">
+          导出失败，请重试
         </span>
       ) : null}
     </div>
@@ -921,10 +1171,37 @@ function ActionFooter({ idea }: { idea: Idea }) {
   });
 
   const [sheetOpen, setSheetOpen] = useState(false);
+  const [feedback, setFeedback] = useState({
+    kind: "saved" as Exclude<IdeaStatus, "active">,
+    title: "已收藏",
+    description: "这个 Idea 已保存在当前设备的收藏夹中。",
+  });
 
-  const updateStatus = (next: IdeaStatus) => {
+  const updateStatus = (
+    target: Exclude<IdeaStatus, "active">,
+  ) => {
+    const next: IdeaStatus = status === target ? "active" : target;
     upsertIdeaRecord(idea, { status: next });
     setStatus(next);
+    setFeedback({
+      kind: target,
+      title:
+        next === "active"
+          ? target === "saved"
+            ? "已取消收藏"
+            : "已移出垃圾桶"
+          : target === "saved"
+            ? "已收藏"
+            : "已丢弃",
+      description:
+        next === "active"
+          ? target === "saved"
+            ? "这个 Idea 已回到待决定列表。"
+            : "这个 Idea 已从垃圾桶恢复。"
+          : target === "saved"
+            ? "这个 Idea 已保存在当前设备的收藏夹中。"
+            : "这个 Idea 已移入当前设备的垃圾桶。",
+    });
     setSheetOpen(true);
   };
 
@@ -937,6 +1214,7 @@ function ActionFooter({ idea }: { idea: Idea }) {
         <button
           className="save-button"
           type="button"
+          aria-pressed={status === "saved"}
           onClick={() => updateStatus("saved")}
         >
           {status === "saved" ? (
@@ -948,20 +1226,21 @@ function ActionFooter({ idea }: { idea: Idea }) {
           <span>
             {status === "saved"
               ? "已收藏"
-              : "继续验证"}
+              : "收藏"}
           </span>
         </button>
 
         <button
           className="trash-button"
           type="button"
+          aria-pressed={status === "trashed"}
           onClick={() => updateStatus("trashed")}
         >
           <TrashIcon />
           <span>
             {status === "trashed"
               ? "已丢弃"
-              : "放弃这个 Idea"}
+              : "丢弃"}
           </span>
         </button>
       </div>
@@ -970,22 +1249,14 @@ function ActionFooter({ idea }: { idea: Idea }) {
         open={sheetOpen}
         onOpenChange={setSheetOpen}
         snap={0.36}
-        title={
-          status === "saved"
-            ? "已加入验证清单"
-            : "已完成无害化处理"
-        }
-        description={
-          status === "saved"
-            ? "先验证，再写代码。"
-            : "世界暂时安全了。"
-        }
+        title={feedback.title}
+        description={feedback.description}
       >
         <div className="decision-sheet-content">
           <span
-            className={`decision-icon ${status}`}
+            className={`decision-icon ${feedback.kind}`}
           >
-            {status === "saved" ? (
+            {feedback.kind === "saved" ? (
               <BookmarkFilledIcon />
             ) : (
               <TrashIcon />
@@ -993,9 +1264,7 @@ function ActionFooter({ idea }: { idea: Idea }) {
           </span>
 
           <p>
-            {status === "saved"
-              ? "这个 Idea 已保存在当前设备的收藏夹中。"
-              : "这个 Idea 已从收藏夹移入垃圾桶。"}
+            {feedback.description}
           </p>
 
           <button
