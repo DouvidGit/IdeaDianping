@@ -1194,32 +1194,30 @@ button {
   }
 }
 
-/* 暴力移除所有与手机模拟相关的边框和限制 */
-[class*="phone"],
-[class*="device"],
-[class*="mockup"],
-[class*="frame"]:not(.page-frame) {
-  border: none !important;
-  box-shadow: none !important;
-  max-width: 100% !important;
+/* 彻底消灭手机壳 */
+div.phone-device {
+  all: initial !important;                   /* 重置所有样式 */
+  display: block !important;
   width: 100% !important;
   height: 100vh !important;
+  max-width: 100% !important;
+  border: none !important;
+  box-shadow: none !important;
   border-radius: 0 !important;
   padding: 0 !important;
+  margin: 0 !important;
   background: transparent !important;
-  margin: 0 auto !important;
   transform: none !important;
   overflow: visible !important;
 }
 
-/* 同时让内部所有元素铺满 */
-[class*="phone"] *,
-[class*="device"] *,
-[class*="mockup"] * {
+div.phone-device > * {
   max-width: 100% !important;
+  box-sizing: border-box !important;
 }
 
-/* 隐藏键盘（如果有） */
+/* 隐藏键盘 */
+.keyboard,
 [class*="keyboard"] {
   display: none !important;
 }
