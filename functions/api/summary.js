@@ -9,7 +9,7 @@ async function callQwen(apiKey, messages) {
   const timeout = setTimeout(() => controller.abort(), 18_000);
 
   try {
-    const response = await fetch("https://dashscope-intl.aliyuncs.com/compatible-mode/v1/chat/completions", {
+    const response = await fetch("https://dashscope.aliyuncs.com/compatible-mode/v1/chat/completions", {
       method: "POST",
       headers: {
         "content-type": "application/json",

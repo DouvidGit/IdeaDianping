@@ -41,7 +41,7 @@ test("review endpoint sends the structured Qwen request", { concurrency: false }
       env: { QWEN_API_KEY: "unit-test-secret" },
     });
     assert.equal(response.status, 200);
-    assert.equal(captured.url, "https://dashscope-intl.aliyuncs.com/compatible-mode/v1/chat/completions");
+    assert.equal(captured.url, "https://dashscope.aliyuncs.com/compatible-mode/v1/chat/completions");
     assert.equal(captured.options.headers.authorization, "Bearer unit-test-secret");
     assert.equal(captured.body.model, "qwen3.7-max");
     assert.equal(captured.body.enable_thinking, false);

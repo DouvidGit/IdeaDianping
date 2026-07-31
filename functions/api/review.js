@@ -306,7 +306,7 @@ async function callQwen(apiKey, messages, maxTokens) {
 
   try {
     const response = await fetch(
-      "https://dashscope-intl.aliyuncs.com/compatible-mode/v1/chat/completions",
+      "https://dashscope.aliyuncs.com/compatible-mode/v1/chat/completions",
       {
         method: "POST",
         headers: {
