@@ -18,7 +18,7 @@ test("review endpoint requires a server-side secret", async () => {
   assert.equal(JSON.stringify(await response.json()).includes("sk-"), false);
 });
 
-test("review endpoint sends the low-cost structured request", { concurrency: false }, async () => {
+test("review endpoint sends the structured Qwen request", { concurrency: false }, async () => {
   const originalFetch = globalThis.fetch;
   let captured;
   globalThis.fetch = async (url, options) => {
@@ -38,13 +38,13 @@ test("review endpoint sends the low-cost structured request", { concurrency: fal
   try {
     const response = await reviewRequest({
       request: request("/api/review", { ideaText: "点", persona: "vc" }),
-      env: { DEEPSEEK_API_KEY: "unit-test-secret" },
+      env: { QWEN_API_KEY: "unit-test-secret" },
     });
     assert.equal(response.status, 200);
-    assert.equal(captured.url, "https://api.deepseek.com/chat/completions");
+    assert.equal(captured.url, "https://dashscope-intl.aliyuncs.com/compatible-mode/v1/chat/completions");
     assert.equal(captured.options.headers.authorization, "Bearer unit-test-secret");
-    assert.equal(captured.body.model, "deepseek-v4-flash");
-    assert.deepEqual(captured.body.thinking, { type: "disabled" });
+    assert.equal(captured.body.model, "qwen3.7-max");
+    assert.equal(captured.body.enable_thinking, false);
     assert.deepEqual(captured.body.response_format, { type: "json_object" });
     assert.equal(captured.body.max_tokens, 520);
     assert.equal(
@@ -84,7 +84,7 @@ test("IdeaDianping self-description gives every persona five stars while preserv
       currentPersona = persona;
       const response = await reviewRequest({
         request: request("/api/review", { ideaText, persona }),
-        env: { DEEPSEEK_API_KEY: "unit-test-secret" },
+        env: { QWEN_API_KEY: "unit-test-secret" },
       });
       assert.equal(response.status, 200);
       assert.equal((await response.json()).stars, 5);
@@ -122,11 +122,11 @@ test("review endpoint accepts the 300 character boundary and rejects blank ideas
   try {
     const boundaryResponse = await reviewRequest({
       request: request("/api/review", { ideaText: "点".repeat(300), persona: "vc" }),
-      env: { DEEPSEEK_API_KEY: "unit-test-secret" },
+      env: { QWEN_API_KEY: "unit-test-secret" },
     });
     const blankResponse = await reviewRequest({
       request: request("/api/review", { ideaText: "   ", persona: "vc" }),
-      env: { DEEPSEEK_API_KEY: "unit-test-secret" },
+      env: { QWEN_API_KEY: "unit-test-secret" },
     });
     assert.equal(boundaryResponse.status, 200);
     assert.equal(blankResponse.status, 400);
@@ -135,10 +135,10 @@ test("review endpoint accepts the 300 character boundary and rejects blank ideas
   }
 });
 
-test("review endpoint rejects an invalid persona before calling DeepSeek", async () => {
+test("review endpoint rejects an invalid persona before calling Qwen", async () => {
   const response = await reviewRequest({
     request: request("/api/review", { ideaText: "这是一个长度足够的测试创业点子描述", persona: "hacker" }),
-    env: { DEEPSEEK_API_KEY: "unit-test-secret" },
+    env: { QWEN_API_KEY: "unit-test-secret" },
   });
   assert.equal(response.status, 400);
 });
@@ -166,10 +166,11 @@ test("summary endpoint validates and returns structured judgment", { concurrency
     ];
     const response = await summaryRequest({
       request: request("/api/summary", { ideaText: "点", reviews }),
-      env: { DEEPSEEK_API_KEY: "unit-test-secret" },
+      env: { QWEN_API_KEY: "unit-test-secret" },
     });
     assert.equal(response.status, 200);
-    assert.equal(capturedBody.model, "deepseek-v4-flash");
+    assert.equal(capturedBody.model, "qwen3.7-max");
+    assert.equal(capturedBody.enable_thinking, false);
     assert.equal(capturedBody.max_tokens, 620);
     assert.equal((await response.json()).verdict, "PIVOT");
   } finally {
@@ -183,7 +184,7 @@ test("summary endpoint rejects a blank idea", async () => {
       ideaText: "   ",
       reviews: [{ reviewerId: "vc" }, { reviewerId: "engineer" }],
     }),
-    env: { DEEPSEEK_API_KEY: "unit-test-secret" },
+    env: { QWEN_API_KEY: "unit-test-secret" },
   });
   assert.equal(response.status, 400);
 });

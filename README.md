@@ -25,7 +25,7 @@
 相比最初的概念原型，v0.1.0 已经完成：
 
 - 从假手机演示壳改为正常的响应式网页。
-- 接入 DeepSeek API，跑通“输入 → 三人锐评 → 最终审判”的完整流程。
+- 接入 Qwen API，跑通“输入 → 三人锐评 → 最终审判”的完整流程。
 - 增加个人页、收藏夹、垃圾桶和锐评卡下载。
 - 优化首页、审判团、评论卡和操作按钮的排版与交互。
 
@@ -50,13 +50,13 @@ Build output directory: dist/client
 在 Cloudflare Pages 的 `Variables and Secrets` 中添加：
 
 ```text
-DEEPSEEK_API_KEY=<你的 DeepSeek API Key>
+QWEN_API_KEY=<你的 Qwen API Key>
 ```
 
 不要把真实 API Key 写进代码或提交到 GitHub。
 
 ## 技术栈
 
-React 19 · TypeScript · Vite · Cloudflare Pages Functions · DeepSeek API · localStorage
+React 19 · TypeScript · Vite · Cloudflare Pages Functions · Qwen API · localStorage
 
 完整产品背景见 [MVP Spec](./IdeaDianping-MVP-Spec.md)。

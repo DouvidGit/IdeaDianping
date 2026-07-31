@@ -300,13 +300,13 @@ const json = (data, status = 200) =>
   });
 
 
-async function callDeepSeek(apiKey, messages, maxTokens) {
+async function callQwen(apiKey, messages, maxTokens) {
   const controller = new AbortController();
   const timeout = setTimeout(() => controller.abort(), 18000);
 
   try {
     const response = await fetch(
-      "https://api.deepseek.com/chat/completions",
+      "https://dashscope-intl.aliyuncs.com/compatible-mode/v1/chat/completions",
       {
         method: "POST",
         headers: {
@@ -314,9 +314,9 @@ async function callDeepSeek(apiKey, messages, maxTokens) {
           authorization: `Bearer ${apiKey}`,
         },
         body: JSON.stringify({
-          model: "deepseek-v4-flash",
+          model: "qwen3.7-max",
           messages,
-          thinking: { type: "disabled" },
+          enable_thinking: false,
           response_format: { type: "json_object" },
           max_tokens: maxTokens,
           stream: false,
@@ -415,9 +415,9 @@ function validReview(value, persona) {
 
 export async function onRequestPost({ request, env }) {
 
-  if (!env.DEEPSEEK_API_KEY) {
+  if (!env.QWEN_API_KEY) {
     return json(
-      { error: "服务端尚未配置 DeepSeek Key" },
+      { error: "服务端尚未配置 Qwen Key" },
       503
     );
   }
@@ -506,8 +506,8 @@ ${ideaText}
 
   try {
 
-    const review = await callDeepSeek(
-      env.DEEPSEEK_API_KEY,
+    const review = await callQwen(
+      env.QWEN_API_KEY,
       [
         {
           role:"system",

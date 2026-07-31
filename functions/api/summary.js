@@ -4,21 +4,21 @@ const json = (data, status = 200) =>
     headers: { "content-type": "application/json; charset=utf-8", "cache-control": "no-store" },
   });
 
-async function callDeepSeek(apiKey, messages) {
+async function callQwen(apiKey, messages) {
   const controller = new AbortController();
   const timeout = setTimeout(() => controller.abort(), 18_000);
 
   try {
-    const response = await fetch("https://api.deepseek.com/chat/completions", {
+    const response = await fetch("https://dashscope-intl.aliyuncs.com/compatible-mode/v1/chat/completions", {
       method: "POST",
       headers: {
         "content-type": "application/json",
         authorization: `Bearer ${apiKey}`,
       },
       body: JSON.stringify({
-        model: "deepseek-v4-flash",
+        model: "qwen3.7-max",
         messages,
-        thinking: { type: "disabled" },
+        enable_thinking: false,
         response_format: { type: "json_object" },
         max_tokens: 620,
         stream: false,
@@ -27,7 +27,7 @@ async function callDeepSeek(apiKey, messages) {
     });
 
     if (!response.ok) {
-      console.error("DeepSeek summary request failed", response.status);
+      console.error("Qwen summary request failed", response.status);
       throw new Error("UPSTREAM_ERROR");
     }
 
@@ -52,7 +52,7 @@ function validSummary(value) {
 }
 
 export async function onRequestPost({ request, env }) {
-  if (!env.DEEPSEEK_API_KEY) return json({ error: "服务端尚未配置 DeepSeek Key" }, 503);
+  if (!env.QWEN_API_KEY) return json({ error: "服务端尚未配置 Qwen Key" }, 503);
 
   let body;
   try {
@@ -72,8 +72,8 @@ export async function onRequestPost({ request, env }) {
   const user = `原始 Idea：${ideaText}\n\n评论 JSON：${JSON.stringify(reviews)}`;
 
   try {
-    const summary = await callDeepSeek(
-      env.DEEPSEEK_API_KEY,
+    const summary = await callQwen(
+      env.QWEN_API_KEY,
       [{ role: "system", content: system }, { role: "user", content: user }],
     );
     if (!validSummary(summary)) return json({ error: "AI 返回的总结结构无效" }, 502);
